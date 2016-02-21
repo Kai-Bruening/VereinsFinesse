@@ -1,0 +1,66 @@
+# Konfigurations-Information für Vereinsfinesse
+
+# Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
+# Steuercode für Finess zu bestimmen.
+steuerfaelle:
+  - !Steuerfall
+    code:           0
+    konto:          1570
+    seite:          soll
+    bezeichnung:    freie Eingabe Vorsteuer
+
+  - !Steuerfall
+    code:           1
+    konto:          1775
+    seite:          haben
+    bezeichnung:    Umsatzsteuerfrei
+    ust_satz:       0
+
+  - !Steuerfall
+    code:           2
+    konto:          1876
+    seite:          haben
+    bezeichnung:    7% Umsatzsteuer
+    ust_satz:       7
+
+  - !Steuerfall
+    code:           3
+    konto:          1870
+    seite:          haben
+    bezeichnung:    19% Umsatzsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           6
+    konto:          1569
+    seite:          soll
+    bezeichnung:    19% aufzuteilende Vorsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           7
+    konto:          1566
+    seite:          soll
+    bezeichnung:    7% aufzuteilende Vorsteuer
+    ust_satz:       7
+
+  - !Steuerfall
+    code:           8
+    konto:          1576
+    seite:          soll
+    bezeichnung:    7% Vorsteuer
+    ust_satz:       7
+
+  - !Steuerfall
+    code:           9
+    konto:          1570
+    seite:          soll
+    bezeichnung:    19% Vorsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           10
+    konto:          1570
+    seite:          soll
+    bezeichnung:    19% Vorsteuer
+    ust_satz:       19

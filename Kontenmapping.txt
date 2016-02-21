@@ -1,0 +1,2 @@
+Konto 		->	Haben
+Gegenkonto 	->	Soll
