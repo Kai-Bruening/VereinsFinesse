@@ -62,13 +62,15 @@ class TestMainController (TestCase):
         controller.read_config (f)
         controller.import_VF ('VereinsfliegerFehlerhafterExport.csv')
         self.assertEqual (len (controller.vf_buchungen), 1)
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='output', suffix='.txt', delete=True)
+        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='output', suffix='.txt', delete=False)
+        temp_path = f.name
         #print f.name
         sys.stdout = codecs.getwriter('windows-1252')(f)
         controller.report_errors()
-        f.flush ()
-        self.assertTrue(filecmp.cmp (f.name, 'VereinsfliegerFehlerhafterExport.txt'))
-        pass
+        f.flush()
+        f.close()
+        self.assertTrue(filecmp.cmp(temp_path, 'VereinsfliegerFehlerhafterExport.txt'))
+        os.remove(temp_path)
 
     def test_import_Finesse(self):
         controller = MainController()
@@ -110,12 +112,15 @@ class TestMainController (TestCase):
         controller.read_config (f)
         controller.import_Finesse ('FinesseFehlerhafterExport.CSV')
         self.assertEqual (len (controller.finesse_buchungen), 3)
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='output', suffix='.txt', delete=True)
+        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='output', suffix='.txt', delete=False)
+        temp_path = f.name
         #print f.name
         sys.stdout = codecs.getwriter('windows-1252')(f)
         controller.report_errors()
         f.flush()
-        self.assertTrue(filecmp.cmp (f.name, 'FinesseFehlerhafterExport.txt'))
+        f.close()
+        self.assertTrue(filecmp.cmp(temp_path, 'FinesseFehlerhafterExport.txt'))
+        os.remove(temp_path)
         pass
 
     def test_connectImportedVFBuchungen(self):
@@ -160,22 +165,27 @@ class TestMainController (TestCase):
         controller = self.prepare_controller()
         controller.connectImportedVFBuchungen ()
         export_list = controller.finesseBuchungenForExportToVF ()
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='VFImport', suffix='.csv', delete=True)
+        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='VFImport', suffix='.csv', delete=False)
+        temp_path = f.name
         # print f.name
         controller.exportFinesseBuchungenToVF (export_list, f)
-        f.flush ()
-        self.assertTrue (filecmp.cmp (f.name, 'VereinsfliegerTestImport.csv'))
+        f.flush()
+        f.close()
+        self.assertTrue (filecmp.cmp(temp_path, 'VereinsfliegerTestImport.csv'))
+        os.remove(temp_path)
 
     def test_exportVFBuchungenToFinesse(self):
         controller = self.prepare_controller()
         controller.connectImportedFinesseBuchungen ()
         export_list = controller.vfBuchungenForExportToFinesse ()
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='FinesseImport', suffix='.csv', delete=True)
+        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='FinesseImport', suffix='.csv', delete=False)
+        temp_path = f.name
         # print f.name
         controller.exportVFBuchungenToFinesse (export_list, f)
-        f.flush ()
-        self.assertTrue (filecmp.cmp (f.name, 'FinesseTestImport.csv'))
-        pass
+        f.flush()
+        f.close()
+        self.assertTrue (filecmp.cmp(temp_path, 'FinesseTestImport.csv'))
+        os.remove(temp_path)
 
     def test_read_config(self):
         controller = MainController()

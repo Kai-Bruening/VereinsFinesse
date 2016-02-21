@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5ecb0231-b0ff-4e73-aeb8-d21c1ae19e8c" name="Default" comment="" />
+    <list default="true" id="5ecb0231-b0ff-4e73-aeb8-d21c1ae19e8c" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Tests/test_mainController.py" afterPath="$PROJECT_DIR$/Tests/test_mainController.py" />
+    </list>
     <ignored path="VereinsFinesse.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -50,7 +52,7 @@
           <file leaf-file-name="Configuration.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/VereinsFinesse/Configuration.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.0288808">
+                <state vertical-scroll-proportion="1.0276443">
                   <caret line="57" column="0" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
                   <folding>
                     <element signature="e#25#36#0" expanded="true" />
@@ -99,11 +101,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="test_mainController.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="test_mainController.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/Tests/test_mainController.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="194" column="0" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.8076923">
+                  <caret line="186" column="36" selection-start-line="186" selection-start-column="36" selection-end-line="186" selection-end-column="36" />
                   <folding>
                     <element signature="e#25#54#0" expanded="true" />
                   </folding>
@@ -111,10 +113,10 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="TestConfig.yaml" pinned="false" current-in-tab="true">
+          <file leaf-file-name="TestConfig.yaml" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/Tests/TestConfig.yaml">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.38507822">
+                <state vertical-scroll-proportion="0.0">
                   <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
                   <folding />
                 </state>
@@ -148,8 +150,8 @@
         <option value="$PROJECT_DIR$/VereinsFinesse/MainController.py" />
         <option value="$PROJECT_DIR$/VereinsFinesse/Buchung.py" />
         <option value="$PROJECT_DIR$/VereinsFinesse/Configuration.py" />
-        <option value="$PROJECT_DIR$/Tests/test_mainController.py" />
         <option value="$PROJECT_DIR$/Tests/TestConfig.yaml" />
+        <option value="$PROJECT_DIR$/Tests/test_mainController.py" />
       </list>
     </option>
   </component>
@@ -184,7 +186,16 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -219,16 +230,7 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope">
-        <subPane subId="Project Files">
-          <PATH>
-            <PATH_ELEMENT USER_OBJECT="Root">
-              <option name="myItemId" value="" />
-              <option name="myItemType" value="" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -259,28 +261,6 @@
       <option name="METHOD_NAME" value="" />
       <option name="FOLDER_NAME" value="" />
       <option name="TEST_TYPE" value="TEST_CLASS" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PUREUNITTEST" value="true" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="Unittest TestMainController.test_import_VF" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="VereinsFinesse" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Tests/test_mainController.py" />
-      <option name="CLASS_NAME" value="TestMainController" />
-      <option name="METHOD_NAME" value="test_import_VF" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_METHOD" />
       <option name="PATTERN" value="" />
       <option name="USE_PATTERN" value="false" />
       <option name="PUREUNITTEST" value="true" />
@@ -345,6 +325,28 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Tests/test_mainController.py" />
       <option name="CLASS_NAME" value="TestMainController" />
       <option name="METHOD_NAME" value="test_import_vf_with_errors" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_METHOD" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Unittest TestMainController.test_import_finesse_with_errors" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="VereinsFinesse" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Tests/test_mainController.py" />
+      <option name="CLASS_NAME" value="TestMainController" />
+      <option name="METHOD_NAME" value="test_import_finesse_with_errors" />
       <option name="FOLDER_NAME" value="" />
       <option name="TEST_TYPE" value="TEST_METHOD" />
       <option name="PATTERN" value="" />
@@ -532,18 +534,18 @@
       <item index="1" class="java.lang.String" itemvalue="Python.Test bad args" />
       <item index="2" class="java.lang.String" itemvalue="Python.Test beide" />
       <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in TestMainController" />
-      <item index="4" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_VF" />
-      <item index="5" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_connectImportedFinesseBuchungen" />
-      <item index="6" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_exportVFBuchungenToFinesse" />
-      <item index="7" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_vf_with_errors" />
+      <item index="4" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_connectImportedFinesseBuchungen" />
+      <item index="5" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_exportVFBuchungenToFinesse" />
+      <item index="6" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_vf_with_errors" />
+      <item index="7" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_finesse_with_errors" />
     </list>
     <recent_temporary>
       <list size="5">
         <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in TestMainController" />
-        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_vf_with_errors" />
-        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_exportVFBuchungenToFinesse" />
-        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_connectImportedFinesseBuchungen" />
-        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_VF" />
+        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_finesse_with_errors" />
+        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_import_vf_with_errors" />
+        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_exportVFBuchungenToFinesse" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittest TestMainController.test_connectImportedFinesseBuchungen" />
       </list>
     </recent_temporary>
   </component>
@@ -561,14 +563,8 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_TestMainController - 2016.02.15 at 17h 39m 11s.xml">
-      <configuration name="Unittests in TestMainController" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_TestMainController - 2016.02.15 at 17h 45m 01s.xml">
-      <configuration name="Unittests in TestMainController" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_TestMainController - 2016.02.15 at 17h 45m 24s.xml">
-      <configuration name="Unittests in TestMainController" configurationId="tests" />
+    <history-entry file="Unittest_TestMainController_test_import_finesse_with_errors - 2016.02.21 at 15h 37m 44s.xml">
+      <configuration name="Unittest TestMainController.test_import_finesse_with_errors" configurationId="tests" />
     </history-entry>
     <history-entry file="Unittests_in_TestMainController - 2016.02.15 at 17h 46m 17s.xml">
       <configuration name="Unittests in TestMainController" configurationId="tests" />
@@ -591,6 +587,12 @@
     <history-entry file="Unittests_in_TestMainController - 2016.02.21 at 13h 45m 29s.xml">
       <configuration name="Unittests in TestMainController" configurationId="tests" />
     </history-entry>
+    <history-entry file="Unittests_in_TestMainController - 2016.02.21 at 14h 48m 30s.xml">
+      <configuration name="Unittests in TestMainController" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_TestMainController - 2016.02.21 at 15h 40m 05s.xml">
+      <configuration name="Unittests in TestMainController" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -603,9 +605,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="181" y="41" width="2091" height="1332" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.147343" sideWeight="0.59022117" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.147343" sideWeight="0.58488375" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32945737" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32943144" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32945737" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
@@ -613,8 +615,8 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32832834" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14975846" sideWeight="0.45750874" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32945737" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.147343" sideWeight="0.4097788" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30725807" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.147343" sideWeight="0.41511628" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30645162" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -1022,16 +1024,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/VereinsFinesse/MainController.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="98" column="8" selection-start-line="98" selection-start-column="8" selection-end-line="98" selection-end-column="8" />
-          <folding>
-            <element signature="e#25#39#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/VereinsFinesse/Buchung.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1042,19 +1034,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tests/test_mainController.py">
+    <entry file="file://$PROJECT_DIR$/Tests/TestConfig.yaml">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="194" column="0" selection-start-line="194" selection-start-column="0" selection-end-line="194" selection-end-column="0" />
+          <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/VereinsFinesse/MainController.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="98" column="8" selection-start-line="98" selection-start-column="8" selection-end-line="98" selection-end-column="8" />
           <folding>
-            <element signature="e#25#54#0" expanded="true" />
+            <element signature="e#25#39#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/VereinsFinesse/Configuration.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0288808">
+        <state vertical-scroll-proportion="1.0276443">
           <caret line="57" column="0" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
           <folding>
             <element signature="e#25#36#0" expanded="true" />
@@ -1062,11 +1062,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tests/TestConfig.yaml">
+    <entry file="file://$PROJECT_DIR$/Tests/test_mainController.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38507822">
-          <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
-          <folding />
+        <state vertical-scroll-proportion="0.8076923">
+          <caret line="186" column="36" selection-start-line="186" selection-start-column="36" selection-end-line="186" selection-end-column="36" />
+          <folding>
+            <element signature="e#25#54#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
