@@ -74,6 +74,10 @@ target/
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
 
+# Platform-specific:
+.idea/misc.xml
+.idea/*.iml
+
 # Sensitive or high-churn files:
 .idea/dataSources.ids
 .idea/dataSources.xml
