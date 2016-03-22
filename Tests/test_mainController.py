@@ -2,6 +2,7 @@
 
 from unittest import TestCase
 from VereinsFinesse.MainController import *
+import VereinsFinesse.CheckDigit
 import tempfile
 import filecmp
 
@@ -20,11 +21,10 @@ class TestMainController (TestCase):
         self.assertEqual (len (controller.vf_buchungenForExportToFinesse), 5)
 
         b = controller.vf_buchungen[0]
-        self.assertEqual (b.konto_haben, 5155)
-        self.assertEqual (b.konto_haben_kostenstelle, 222)
-        self.assertEqual (b.konto_soll, 11564)
-        self.assertEqual (b.betrag_haben, Decimal (0))
-        self.assertEqual (b.betrag_soll, Decimal (0))
+        self.assertEqual (b.konto_soll, 5155)
+        self.assertEqual (b.konto_soll_kostenstelle, 222)
+        self.assertEqual (b.konto_haben, 11564)
+        self.assertEqual (b.betrag, Decimal (0))
         self.assertEqual (b.steuer_konto, 1876)
         self.assertEqual (b.mwst_satz, Decimal ('7'))
         self.assertEqual (b.finesse_steuercode, 2)
@@ -32,15 +32,14 @@ class TestMainController (TestCase):
         self.assertEqual (b.buchungstext, u'Gebührenabrechnung')
 
         b = controller.vf_buchungen[3]
-        self.assertEqual (b.konto_haben, 5155)
-        self.assertIsNone (b.konto_haben_kostenstelle)
-        self.assertEqual (b.konto_soll, 11564)
-        self.assertEqual (b.betrag_haben, Decimal ('2.06'))
-        self.assertEqual (b.betrag_soll, Decimal ('2.20'))
+        self.assertEqual (b.konto_soll, 5155)
+        self.assertIsNone (b.konto_soll_kostenstelle)
+        self.assertEqual (b.konto_haben, 11564)
+        self.assertEqual (b.betrag, Decimal ('-2.20'))
         self.assertEqual (b.steuer_konto, 1876)
         self.assertEqual (b.mwst_satz, Decimal ('7'))
         self.assertEqual (b.finesse_steuercode, 2)
-        self.assertEqual (b.steuer_betrag_haben, Decimal ('0.14'))
+        self.assertEqual (b.steuer_betrag_haben, Decimal ('-0.14'))
         self.assertEqual (b.buchungstext, u'Gebührenabrechnung')
 
         # zahlungseingaengeByBelegnummer = controller.vf_belegarten[u'ZE']
@@ -152,14 +151,15 @@ class TestMainController (TestCase):
         controller.connectImportedVFBuchungen ()
         export_list = controller.finesseBuchungenForExportToVF ()
         self.assertEqual (len (export_list), 2)
-        self.assertEqual (export_list[0], controller.finesse_buchungen[1])
+        self.assertEqual (int(VereinsFinesse.CheckDigit.check_and_strip_checkdigit(unicode(export_list[0].vf_belegnummer))),
+                          controller.finesse_buchungen[1].finesse_journalnummer)
 
     def test_vfBuchungenForExportToFinesse(self):
         controller = self.prepare_controller()
-        controller.connectImportedFinesseBuchungen ()
-        export_list = controller.vfBuchungenForExportToFinesse ()
+        controller.connectImportedFinesseBuchungen()
+        export_list = controller.vfBuchungenForExportToFinesse()
         self.assertEqual (len (export_list), 4)
-        self.assertEqual (export_list[1], controller.vf_buchungen[2])
+        self.assertEqual (export_list[1].vf_nr, controller.vf_buchungen[2].vf_nr)
 
     def test_exportFinesseBuchungenToVF(self):
         controller = self.prepare_controller()
@@ -167,7 +167,7 @@ class TestMainController (TestCase):
         export_list = controller.finesseBuchungenForExportToVF ()
         f = tempfile.NamedTemporaryFile (mode='w+b', prefix='VFImport', suffix='.csv', delete=False)
         temp_path = f.name
-        # print f.name
+        #print f.name
         controller.exportFinesseBuchungenToVF (export_list, f)
         f.flush()
         f.close()
@@ -180,7 +180,7 @@ class TestMainController (TestCase):
         export_list = controller.vfBuchungenForExportToFinesse ()
         f = tempfile.NamedTemporaryFile (mode='w+b', prefix='FinesseImport', suffix='.csv', delete=False)
         temp_path = f.name
-        # print f.name
+        #print f.name
         controller.exportVFBuchungenToFinesse (export_list, f)
         f.flush()
         f.close()

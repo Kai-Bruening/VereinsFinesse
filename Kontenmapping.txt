@@ -1,2 +1,11 @@
 Konto 		->	Haben
 Gegenkonto 	->	Soll
+
+VF:
+Konto: Brutto, Gegenkonto: Netto (immer)
+Positiv: Haben, Negativ: Soll
+
+
+Finesse:
+Vorsteuer: Haben Brutto, Soll Netto
+U-St:	   Soll Brutto, Haben Netto

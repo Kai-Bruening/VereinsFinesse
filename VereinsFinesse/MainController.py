@@ -4,8 +4,8 @@ import os.path
 import sys
 import argparse
 import yaml
-# from .Buchung import Buchung
-from Buchung import *
+import VF_Buchung
+import Finesse_Buchung
 from UnicodeCSV import *
 from Configuration import *
 
@@ -111,8 +111,8 @@ class MainController:
         return Kontenbereiche(list)
 
     def is_buchung_exported_to_finesse(self, buchung):
-        return (not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto_haben)
-                and not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto_soll))
+        return (not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
+                and not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.gegen_konto))
 
     def is_buchung_exported_to_vf(self, buchung):
         return (self.konten_finesse_nach_vf.enthaelt_konto(buchung.konto_haben)
@@ -147,14 +147,14 @@ class MainController:
                 print u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>'])
                 raise StopRun()
 
-            b = Buchung()
+            b = VF_Buchung.VF_Buchung()
             if not b.init_from_vf(row_dict, self.steuer_configuration):
                 self.fehlerhafte_vf_buchungen.append(b)
                 continue
 
             # Jetzt zwischen Buchungen unterscheiden, die ursprünglich von Finesse importiert wurden, und solchen,
             # die im Vereinsflieger entstanden sind.
-            if b.vf_belegart == vf_belegart_for_import_from_finesse:
+            if b.vf_belegart == VF_Buchung.vf_belegart_for_import_from_finesse:
                 buchungsDict = self.vf_buchungenImportedFromFinesse
             else:
                 # Überspringe Buchungen, die nicht nach Finesse exportiert werden sollen.
@@ -169,17 +169,17 @@ class MainController:
             self.vf_buchungen.append(b) # alle importierten Buchungen werden hier gesammelt
             self.vf_buchungenByNr[b.vf_nr] = b
 
-    def exportFinesseBuchungenToVF(self, finesseBuchungen, fileHandle):
+    def exportFinesseBuchungenToVF(self, vf_buchungen, fileHandle):
         writer = UnicodeDictWriter(fileHandle,
-                                   Buchung.fieldnames_for_export_to_vf(),
+                                   VF_Buchung.VF_Buchung.fieldnames_for_export_to_vf(),
                                    encoding="windows-1252",
                                    restval='',
                                    delimiter=";",
                                    quoting=csv.QUOTE_MINIMAL,
                                    strict=True)
         writer.writeheader()
-        for finesseBuchung in finesseBuchungen:
-            writer.writerow(finesseBuchung.dict_for_export_to_vf)
+        for vf_buchung in vf_buchungen:
+            writer.writerow(vf_buchung.dict_for_export_to_vf)
 
 
     def import_Finesse(self, path):
@@ -198,7 +198,7 @@ class MainController:
                 print u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>'])
                 raise StopRun()
 
-            b = Buchung()
+            b = Finesse_Buchung.Finesse_Buchung()
             if not b.init_from_finesse(row_dict, self.steuer_configuration):
                 self.fehlerhafte_finesse_buchungen.append(b)
                 continue
@@ -211,7 +211,7 @@ class MainController:
 
             # Nur Buchungen auf Mitgliederkonten werden von Finesse in den Vereinsflieger übernommen (um die Salden
             # auf den Mitgliederkonten parallel zu halten).
-            elif (b.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
+            elif (b.finesse_buchungs_journal == Finesse_Buchung.finesse_fournal_for_export_to_vf
                   and self.is_buchung_exported_to_vf(b)):
                 if b.finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
                     b.fehler_beschreibung = u'Mitgliederbuchung aus Finesse mit nicht-eindeutiger Journalnummer ({0})'.format(b.finesse_journalnummer)
@@ -222,7 +222,7 @@ class MainController:
 
     def exportVFBuchungenToFinesse(self, vfBuchungen, fileHandle):
         writer = UnicodeDictWriter(fileHandle,
-                                   Buchung.fieldnames_for_export_to_finesse(),
+                                   Finesse_Buchung.Finesse_Buchung.fieldnames_for_export_to_finesse(),
                                    encoding="utf-8",
                                    restval='',
                                    delimiter=";",
@@ -253,8 +253,9 @@ class MainController:
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
             if not finesse_buchung.kopierte_buchungen:
-                if finesse_buchung.prepare_for_vf(self.konten_mit_kostenstelle):
-                    result.append(finesse_buchung)
+                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_mit_kostenstelle)
+                if vf_buchung:
+                    result.append(vf_buchung)
                 else:
                     self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
         return result
@@ -262,7 +263,7 @@ class MainController:
     def connectImportedFinesseBuchungen(self):
         for finesse_buchung in self.finesse_buchungen_originally_imported_from_vf:
             vfBuchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
-            assert vfBuchung.matches_konten_of_buchung(finesse_buchung)
+            #TODO: assert vfBuchung.matches_konten_of_buchung(finesse_buchung)
             # Buchungen im VF können geändert werden, deshalb kann es mehrere Buchung in Finesse für
             # eine einzige VF-Buchung geben.
             finesse_buchung.original_buchung = vfBuchung
