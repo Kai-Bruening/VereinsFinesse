@@ -21,25 +21,23 @@ class TestMainController (TestCase):
         self.assertEqual (len (controller.vf_buchungenForExportToFinesse), 5)
 
         b = controller.vf_buchungen[0]
-        self.assertEqual (b.konto_soll, 5155)
-        self.assertEqual (b.konto_soll_kostenstelle, 222)
-        self.assertEqual (b.konto_haben, 11564)
+        self.assertEqual (b.gegen_konto, 5155)
+        self.assertEqual (b.gegen_konto_kostenstelle, 222)
+        self.assertEqual (b.konto, 11564)
         self.assertEqual (b.betrag, Decimal (0))
         self.assertEqual (b.steuer_konto, 1876)
         self.assertEqual (b.mwst_satz, Decimal ('7'))
-        self.assertEqual (b.finesse_steuercode, 2)
-        self.assertEqual (b.steuer_betrag_haben, Decimal (0))
+        self.assertEqual (b.steuerfall.code, 2)
         self.assertEqual (b.buchungstext, u'Gebührenabrechnung')
 
         b = controller.vf_buchungen[3]
-        self.assertEqual (b.konto_soll, 5155)
-        self.assertIsNone (b.konto_soll_kostenstelle)
-        self.assertEqual (b.konto_haben, 11564)
+        self.assertEqual (b.gegen_konto, 5155)
+        self.assertIsNone (b.gegen_konto_kostenstelle)
+        self.assertEqual (b.konto, 11564)
         self.assertEqual (b.betrag, Decimal ('-2.20'))
         self.assertEqual (b.steuer_konto, 1876)
         self.assertEqual (b.mwst_satz, Decimal ('7'))
-        self.assertEqual (b.finesse_steuercode, 2)
-        self.assertEqual (b.steuer_betrag_haben, Decimal ('-0.14'))
+        self.assertEqual (b.steuerfall.code, 2)
         self.assertEqual (b.buchungstext, u'Gebührenabrechnung')
 
         # zahlungseingaengeByBelegnummer = controller.vf_belegarten[u'ZE']

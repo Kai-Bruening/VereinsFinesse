@@ -50,23 +50,9 @@ class VF_Buchung:
         self.vf_belegart = None
         self.vf_belegnummer = None
         self.abrechnungsnr = None
+        self.steuerfall = None
 
-        self.finesse_buchungs_journal = None
         self.finesse_journalnummer = None
-        self.finesse_beleg2 = None
-        self.finesse_steuercode = None
-        self.kostenstelle = None
-        self.konto_soll = None
-        self.konto_soll_kostenstelle = None
-        self.konto_soll_name = None
-        self.konto_haben = None
-        self.konto_haben_kostenstelle = None
-        self.konto_haben_name = None
-        self.steuer_konto_name = None
-        self.betrag_soll = None
-        self.betrag_haben = None
-        self.steuer_betrag_soll = None
-        self.steuer_betrag_haben = None
 
         # Die Buchung auf der anderen Seite, von der diese importiert wurde
         self.original_buchung = None
@@ -111,66 +97,46 @@ class VF_Buchung:
         if len(steuer_konto_text) > 0:
             steuer_konto = int(steuer_konto_text)
             steuer_satz = Decimal(steuer_satz_text)
-            steuerfall = steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(steuer_konto, steuer_satz)
-            if not steuerfall:
+            self.steuerfall = steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(steuer_konto, steuer_satz)
+            if not self.steuerfall:
                 self.fehler_beschreibung = u'Kombination aus Steuerkonto ({0}) und Steuersatz ({1}) unbekannt'.format(steuer_konto, steuer_satz)
                 return False
 
             # Der Steuersatz aus dem Vereinsflieger muss zum Steuerkonto passen.
-            if steuer_satz != steuerfall.ust_satz:
+            if steuer_satz != self.steuerfall.ust_satz:
                 self.fehler_beschreibung = (u'MwSt-Satz ({0}) aus Vereinsflieger passt nicht zum dem des Steuerkontos ({1})'
-                                            .format(steuer_satz, steuerfall.ust_satz))
+                                            .format(steuer_satz, self.steuerfall.ust_satz))
                 return False
             self.steuer_konto = steuer_konto
             self.mwst_satz = steuer_satz
-            self.finesse_steuercode = steuerfall.code
         else:
             # Kein Steuerkonto angegeben, dann muss der MwSt-Satz 0 sein (oder leer).
             if len(steuer_satz_text) > 0 and int(steuer_satz_text) != 0:
                 self.fehler_beschreibung = u'MwSt-Satz > 0 ({0}) ohne Steuerkonto'.format(steuer_satz_text)
                 return False
 
-        # Im Buchungsexport des VF entspricht 'Konto' stets dem Habenkonto für Finesse und 'Gegenkonto' dem
-        # Sollkonto.
-        # Nicht mehr: Dies gilt nicht im Buchungsjournal-View im VF. Wenn dort 'Betrag(K)' negativ ist, werden die
-        # Konten für den Export vertauscht.
         (self.konto, self.konto_kostenstelle) = vf_read_konto(value_dict[u'Konto'])
         (self.gegen_konto, self.gegen_konto_kostenstelle) = vf_read_konto(value_dict[u'G-Konto'])
 
-        self.konto_haben = self.konto
-        self.konto_haben_kostenstelle = self.konto_kostenstelle
-        self.konto_soll = self.gegen_konto
-        self.konto_soll_kostenstelle = self.gegen_konto_kostenstelle
-
-        self.betrag_soll = self.betrag
-        self.betrag_haben = self.betrag
-        if steuer_satz > Decimal(0):
-            self.betrag_haben = round_to_two_places(self.betrag / (Decimal(1) + steuer_satz / Decimal(100)))
-            # Auf welche Seite des Steuerkontos die Steuer gebucht wird, hängt davon ab, ob es ein Vorsteuer- oder
-            # ein Umsatzsteuerkonto ist. Dies ist im Steuerfall mit geschlüsselt.
-            if steuerfall.steuer_ins_haben:
-                self.steuer_betrag_haben = self.betrag_soll - self.betrag_haben
-                self.steuer_betrag_soll = Decimal(0)
-            else:
-                self.steuer_betrag_soll = self.betrag_soll - self.betrag_haben
-                self.steuer_betrag_haben = Decimal(0)
-
-        if self.konto_haben_kostenstelle:
-            self.kostenstelle = self.konto_haben_kostenstelle
-        elif self.konto_soll_kostenstelle:
-            self.kostenstelle = self.konto_soll_kostenstelle
-
-        # Plausibilitätschecks:
-        if self.konto_haben_kostenstelle and self.konto_soll_kostenstelle:
+        if self.konto_kostenstelle and self.gegen_konto_kostenstelle:
             self.fehler_beschreibung = u'Beide Konten haben eine Kostenstelle'
             return False
 
         return True
 
+    @property
+    def kostenstelle(self):
+        kostenstelle = self.konto_kostenstelle
+        if not kostenstelle:
+            kostenstelle = self.gegen_konto_kostenstelle
+        return kostenstelle
+
     def finesse_buchung_from_vf_buchung(self):
         """
         :rtype: Finesse_Buchung
         """
+        assert self.vf_belegart != vf_belegart_for_import_from_finesse
+
         # Kontozuordnung bestimmen.
         if self.kopierte_buchungen:
             eine_finesse_buchung = self.kopierte_buchungen[0]
@@ -179,13 +145,14 @@ class VF_Buchung:
         else:
             konto_im_haben = self.betrag >= Decimal(0)
 
+        # Initialisieren einer Finesse-Buchung mit den Werten der VF-Buchung.
         result = Finesse_Buchung.Finesse_Buchung()
 
         if konto_im_haben:
             result.konto_haben = self.konto
-            result.konto_haben_kostenstelle = self.konto_kostenstelle
+            # result.konto_haben_kostenstelle = self.konto_kostenstelle
             result.konto_soll = self.gegen_konto
-            result.konto_soll_kostenstelle = self.gegen_konto_kostenstelle
+            # result.konto_soll_kostenstelle = self.gegen_konto_kostenstelle
             result.betrag_haben = self.betrag
             result.betrag_soll = result.betrag_haben
             if self.has_steuer:
@@ -195,9 +162,9 @@ class VF_Buchung:
                 result.steuer_betrag_haben = Decimal(0)
         else:
             result.konto_soll = self.konto
-            result.konto_soll_kostenstelle = self.konto_kostenstelle
+            # result.konto_soll_kostenstelle = self.konto_kostenstelle
             result.konto_haben = self.gegen_konto
-            result.konto_haben_kostenstelle = self.gegen_konto_kostenstelle
+            # result.konto_haben_kostenstelle = self.gegen_konto_kostenstelle
             result.betrag_soll = -self.betrag
             result.betrag_haben = result.betrag_soll
             if self.has_steuer:
@@ -206,20 +173,7 @@ class VF_Buchung:
                 result.steuer_betrag_haben = result.betrag_soll - result.betrag_haben
                 result.steuer_betrag_soll = Decimal(0)
 
-
-        # Wenn die Buchung bisher ganz fehlt in Finesse, wird sie ungeändert übertragen
-        # if not self.kopierte_buchungen:
-        #     # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
-        #     if self.betrag == Decimal(0):
-        #         return None
-        #     return self
-
-        # Saldo aus den bisher nach Finesse übertragenen Buchungen bilden.
-        # betrag_soll = self.betrag_soll
-        # betrag_haben = self.betrag_haben
-        # steuer_betrag_soll = self.steuer_betrag_soll
-        # steuer_betrag_haben = self.steuer_betrag_haben
-
+        # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
         if self.kopierte_buchungen:
             for iBuchung in self.kopierte_buchungen:
                 assert iBuchung.matches_konten_of_buchung(result)
@@ -236,19 +190,15 @@ class VF_Buchung:
         result.vf_nr = self.vf_nr
         result.buchungstext = self.buchungstext
         result.datum = self.datum
-        result.finesse_steuercode = self.finesse_steuercode
+        result.steuerfall = self.steuerfall
+        if self.steuerfall:
+            result.finesse_steuercode = self.steuerfall.code
         # Soll Abrechnungsnr wirklich auf Rechnungsnummer abgebildet werden?
         # Ja: so werden in Finesse für eine Mitgliederrechnung Splitbuchungen erzeugt.
         result.rechnungsnummer = self.abrechnungsnr
         result.vf_belegnummer = self.vf_belegnummer
         result.kostenstelle = self.kostenstelle
 
-        # Start with a copy of self and update the amounts
-        # result = copy.copy(self)
-        # result.betrag_soll = betrag_soll
-        # result.betrag_haben = betrag_haben
-        # result.steuer_betrag_soll = steuer_betrag_soll
-        # result.steuer_betrag_haben = steuer_betrag_haben
         return result
 
     @property

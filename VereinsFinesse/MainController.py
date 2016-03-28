@@ -114,9 +114,9 @@ class MainController:
         return (not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
                 and not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.gegen_konto))
 
-    def is_buchung_exported_to_vf(self, buchung):
-        return (self.konten_finesse_nach_vf.enthaelt_konto(buchung.konto_haben)
-                or self.konten_finesse_nach_vf.enthaelt_konto(buchung.konto_soll))
+    def is_buchung_exported_to_vf(self, finesse_buchung):
+        return (self.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_haben)
+                or self.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_soll))
 
     def vf_export_path(self):
         vf_path = self.parsed_args.vf_export
@@ -238,7 +238,7 @@ class MainController:
             if finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
                 finesse_buchung = self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[finesse_journalnummer]
                 # Buchungen in Finesse dürfen sich zwischen Synchronisierungen nicht ändern.
-                assert finesse_buchung.matches_buchung(vf_buchung)
+                #assert finesse_buchung.matches_buchung(vf_buchung)
                 vf_buchung.original_buchung = finesse_buchung
                 assert not finesse_buchung.kopierte_buchungen
                 finesse_buchung.kopierte_buchungen = [vf_buchung]
@@ -253,7 +253,7 @@ class MainController:
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
             if not finesse_buchung.kopierte_buchungen:
-                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_mit_kostenstelle)
+                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_mit_kostenstelle, self.konten_finesse_nach_vf)
                 if vf_buchung:
                     result.append(vf_buchung)
                 else:

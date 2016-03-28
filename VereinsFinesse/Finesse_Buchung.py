@@ -42,7 +42,6 @@ class Finesse_Buchung:
         self.finesse_beleg2 = None
         self.finesse_steuercode = None
         self.kostenstelle = None
-        self.vf_belegart = None
         self.vf_belegnummer = None
         self.datum = None
         self.buchungstext = None
@@ -60,6 +59,7 @@ class Finesse_Buchung:
         self.steuer_betrag_haben = None
         self.mwst_satz = None
         self.rechnungsnummer = None
+        self.steuerfall = None
 
         # Die Buchung auf der anderen Seite, von der diese importiert wurde
         self.original_buchung = None
@@ -100,13 +100,13 @@ class Finesse_Buchung:
         steuercode_text = value_dict[u'Steuercode']
         if len(steuercode_text) > 0:
             steuercode = int(steuercode_text)
-            steuerfall = steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
-            if not steuerfall:
+            self.steuerfall = steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
+            if not self.steuerfall:
                 self.fehler_beschreibung = u'Unbekannter Steuercode ({0})'.format(steuercode)
                 return False
 
             # Das Steuerkonto aus Finesse muss zum Steuercode passen.
-            if steuer_konto != steuerfall.konto_finesse:
+            if steuer_konto != self.steuerfall.konto_finesse:
                 self.fehler_beschreibung = (u'Steuerkonto ({0}) aus Finesse passt nicht zum Steuercode ({1})'
                                             .format(steuer_konto, steuercode))
                 return False
@@ -114,7 +114,7 @@ class Finesse_Buchung:
             self.steuer_konto_name = value_dict[u'Bezeichnung Steuerkonto']
             self.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
             self.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
-            self.mwst_satz = steuerfall.ust_satz
+            self.mwst_satz = self.steuerfall.ust_satz
             self.finesse_steuercode = steuercode
         else:
             # Kein Steuercode angegeben, dann müssen das übrige Steuerzeugs leer oder 0 sein.
@@ -147,21 +147,9 @@ class Finesse_Buchung:
         result.betrag = Decimal(0)
         result.steuer_konto = self.steuer_konto
         result.mwst_satz = self.mwst_satz
-        result.finesse_steuercode = self.finesse_steuercode
+        result.steuerfall = self.steuerfall
         result.buchungstext = self.buchungstext
-        # result.vf_belegart = None
         # result.vf_belegnummer = None
-        # result.vf_belegnummer = None
-        #
-        # result.finesse_buchungs_journal = None
-        # result.finesse_journalnummer = None
-        # result.finesse_beleg2 = None
-        # result.betrag_soll = Decimal(0)
-        # result.betrag_haben = Decimal(0)
-        # result.steuer_betrag_soll = Decimal(0)
-        # result.steuer_betrag_haben = Decimal(0)
-        # result.original_buchung = None
-        # result.kopierte_buchungen = None
         return result
 
     def prepare_for_vf(self, konten_mit_kostenstelle):
@@ -187,7 +175,7 @@ class Finesse_Buchung:
                     return False
         return True
 
-    def vf_buchung_for_export(self, konten_mit_kostenstelle):
+    def vf_buchung_for_export(self, konten_mit_kostenstelle, konten_finesse_nach_vf):
         assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
 
         if not self.prepare_for_vf(konten_mit_kostenstelle):
@@ -195,7 +183,9 @@ class Finesse_Buchung:
 
         result = VF_Buchung.VF_Buchung()
 
-        konto_im_haben = True
+        # Wenn es die Freiheit gibt (keine Steuer) ordnen wir das Mitgliederkonto dem "Konto" zu, so dass es im
+        # Journal des VF möglichst links steht.
+        konto_im_haben = konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
         if self.has_steuer and self.steuer_betrag_haben != Decimal(0):
             konto_im_haben = False
 
@@ -263,7 +253,6 @@ class Finesse_Buchung:
         """
         :rtype: dict
         """
-        assert self.vf_belegart != VF_Buchung.vf_belegart_for_import_from_finesse
         # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
         result = {}
         result[u'Datum'] = self.datum
