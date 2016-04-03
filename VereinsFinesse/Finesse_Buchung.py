@@ -4,15 +4,16 @@ import string
 import copy
 import re
 import math
-from decimal import *
-from Configuration import *
+import decimal
+from decimal import Decimal
+import Configuration
 import CheckDigit
 import VF_Buchung
 
 finesse_journal_for_import_from_vf = u'Vereinsflieger-Import'
 finesse_fournal_for_export_to_vf = u'Dialog'
 
-getcontext().rounding = ROUND_HALF_UP
+decimal.getcontext().rounding = decimal.ROUND_HALF_UP
 
 
 def decimal_with_decimalcomma(s):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import yaml
-from decimal import *
+from decimal import Decimal
 
 
 class Steuerfall(yaml.YAMLObject):

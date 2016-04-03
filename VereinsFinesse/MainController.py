@@ -6,8 +6,9 @@ import argparse
 import yaml
 import VF_Buchung
 import Finesse_Buchung
-from UnicodeCSV import *
-from Configuration import *
+import csv
+import UnicodeCSV
+import Configuration
 
 csv.register_dialect('Vereinsflieger', delimiter=";", strict=True)
 
@@ -96,7 +97,7 @@ class MainController:
             print u"Fehler beim Lesen der Konfiguration von „{0}“:".format(stream.name), error
             raise StopRun()
 
-        self.steuer_configuration = SteuerConfiguration(self.config)
+        self.steuer_configuration = Configuration.SteuerConfiguration(self.config)
 
         self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(u'ausgenommene_konten_vf_nach_finesse')
         self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
@@ -108,7 +109,7 @@ class MainController:
         list = None
         if key in self.config:
             list = self.config[key]
-        return Kontenbereiche(list)
+        return Configuration.Kontenbereiche(list)
 
     def is_buchung_exported_to_finesse(self, buchung):
         return (not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
@@ -134,11 +135,11 @@ class MainController:
         """
         """
         fileHandle = open(path, 'rb')
-        reader = UnicodeDictReader(fileHandle,
-                                   encoding="windows-1252",
-                                   restkey=u'<ÜBERHANG>',
-                                   delimiter=";",
-                                   strict=True)
+        reader = UnicodeCSV.UnicodeDictReader(fileHandle,
+                                               encoding="windows-1252",
+                                               restkey=u'<ÜBERHANG>',
+                                               delimiter=";",
+                                               strict=True)
         self.vf_export_fieldnames = reader.fieldnames
         #TODO: validate fieldnames?
 
@@ -170,7 +171,7 @@ class MainController:
             self.vf_buchungenByNr[b.vf_nr] = b
 
     def exportFinesseBuchungenToVF(self, vf_buchungen, fileHandle):
-        writer = UnicodeDictWriter(fileHandle,
+        writer = UnicodeCSV.UnicodeDictWriter(fileHandle,
                                    VF_Buchung.VF_Buchung.fieldnames_for_export_to_vf(),
                                    encoding="windows-1252",
                                    restval='',
@@ -185,7 +186,7 @@ class MainController:
     def import_Finesse(self, path):
         """ """
         fileHandle = open(path, 'rb')
-        reader = UnicodeDictReader(fileHandle,
+        reader = UnicodeCSV.UnicodeDictReader(fileHandle,
                                    encoding="windows-1252",
                                    restkey=u'<ÜBERHANG>',
                                    delimiter=";",
@@ -221,7 +222,7 @@ class MainController:
                     self.finesse_buchungen.append(b)
 
     def exportVFBuchungenToFinesse(self, vfBuchungen, fileHandle):
-        writer = UnicodeDictWriter(fileHandle,
+        writer = UnicodeCSV.UnicodeDictWriter(fileHandle,
                                    Finesse_Buchung.Finesse_Buchung.fieldnames_for_export_to_finesse(),
                                    encoding="utf-8",
                                    restval='',
@@ -312,7 +313,7 @@ class MainController:
 
     def write_fehlerhafte_buchungen(self, buchungen, fieldnames):
         fieldnames.insert(0, u'Fehler')
-        writer = UnicodeDictWriter(sys.stdout,
+        writer = UnicodeCSV.UnicodeDictWriter(sys.stdout,
                                    fieldnames,
                                    encoding = None,
                                    lineterminator=os.linesep,

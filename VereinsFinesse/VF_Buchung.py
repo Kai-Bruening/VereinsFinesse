@@ -4,14 +4,15 @@ import string
 import copy
 import re
 import math
-from decimal import *
-from Configuration import *
+import decimal
+from decimal import Decimal
+import Configuration
 import CheckDigit
 import Finesse_Buchung
 
 vf_belegart_for_import_from_finesse = u'FD'
 
-getcontext().rounding = ROUND_HALF_UP
+decimal.getcontext().rounding = decimal.ROUND_HALF_UP
 
 vf_konto_und_kostenstelle_expr = re.compile('\s*([0-9]{4})-([0-9]{3})\s*$')
 

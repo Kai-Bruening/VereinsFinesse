@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from VereinsFinesse.MainController import *
+import VereinsFinesse.MainController
 import VereinsFinesse.CheckDigit
 import tempfile
 import filecmp
+import sys
+import os
+import codecs
+from decimal import Decimal
 
 
 class TestMainController (TestCase):
@@ -12,7 +16,7 @@ class TestMainController (TestCase):
     #  pass
 
     def test_import_VF(self):
-        controller = MainController()
+        controller = VereinsFinesse.MainController.MainController()
         f = open ('TestConfig.yaml', 'rb')
         controller.read_config (f)
         controller.import_VF ('VereinsfliegerTestExport.csv')
@@ -54,7 +58,7 @@ class TestMainController (TestCase):
         # self.assertEqual(b.Buchungstext, u'Kontoausgleich SEPA')
 
     def test_import_vf_with_errors(self):
-        controller = MainController()
+        controller = VereinsFinesse.MainController.MainController()
         f = open ('TestConfig.yaml', 'rb')
         controller.read_config (f)
         controller.import_VF ('VereinsfliegerFehlerhafterExport.csv')
@@ -70,7 +74,7 @@ class TestMainController (TestCase):
         os.remove(temp_path)
 
     def test_import_Finesse(self):
-        controller = MainController()
+        controller = VereinsFinesse.MainController.MainController()
         f = open ('TestConfig.yaml', 'rb')
         controller.read_config (f)
         controller.import_Finesse ('FinesseTestExport.csv')
@@ -104,7 +108,7 @@ class TestMainController (TestCase):
         # self.assertEqual(b.Buchungstext, u'AVIA Lastschrift')
 
     def test_import_finesse_with_errors(self):
-        controller = MainController()
+        controller = VereinsFinesse.MainController.MainController()
         f = open ('TestConfig.yaml', 'rb')
         controller.read_config (f)
         controller.import_Finesse ('FinesseFehlerhafterExport.CSV')
@@ -186,7 +190,7 @@ class TestMainController (TestCase):
         os.remove(temp_path)
 
     def test_read_config(self):
-        controller = MainController()
+        controller = VereinsFinesse.MainController.MainController()
         f = open('TestConfig.yaml', 'rb')
         controller.read_config(f)
         self.assertIn('steuerfaelle', controller.config)
@@ -206,7 +210,7 @@ class TestMainController (TestCase):
         self.assertTrue(controller.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(9008))
 
     def prepare_controller(self):
-        controller = MainController()
+        controller = VereinsFinesse.MainController.MainController()
         f = open ('TestConfig.yaml', 'rb')
         controller.read_config (f)
         controller.import_VF ('VereinsfliegerTestExport.csv')
