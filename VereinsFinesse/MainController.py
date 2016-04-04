@@ -155,17 +155,24 @@ class MainController:
 
             # Jetzt zwischen Buchungen unterscheiden, die ursprünglich von Finesse importiert wurden, und solchen,
             # die im Vereinsflieger entstanden sind.
-            if b.vf_belegart == VF_Buchung.vf_belegart_for_import_from_finesse:
+            is_import_from_finesse = b.vf_belegart == VF_Buchung.vf_belegart_for_import_from_finesse
+            if is_import_from_finesse:
                 buchungsDict = self.vf_buchungenImportedFromFinesse
             else:
                 # Überspringe Buchungen, die nicht nach Finesse exportiert werden sollen.
                 if not self.is_buchung_exported_to_finesse(b):
                     continue
                 buchungsDict = self.vf_buchungenForExportToFinesseByVFNr
-                self.vf_buchungenForExportToFinesse.append(b)
 
-            assert b.vf_nr not in buchungsDict # keine Split-Buchungen im VF
+            if b.vf_nr in buchungsDict: # keine Split-Buchungen im VF
+                b.fehler_beschreibung = u'Mehrere Buchungen im VF mit laufender Nr {0}'.format(b.vf_nr)
+                self.fehlerhafte_vf_buchungen.append(b)
+                continue
+
             buchungsDict[b.vf_nr] = b
+
+            if not is_import_from_finesse:
+                self.vf_buchungenForExportToFinesse.append(b)
 
             self.vf_buchungen.append(b) # alle importierten Buchungen werden hier gesammelt
             self.vf_buchungenByNr[b.vf_nr] = b
@@ -200,7 +207,7 @@ class MainController:
                 raise StopRun()
 
             b = Finesse_Buchung.Finesse_Buchung()
-            if not b.init_from_finesse(row_dict, self.steuer_configuration):
+            if not b.init_from_finesse(row_dict, self.steuer_configuration, self.konten_mit_kostenstelle):
                 self.fehlerhafte_finesse_buchungen.append(b)
                 continue
 
@@ -235,16 +242,22 @@ class MainController:
 
     def connectImportedVFBuchungen(self):
         for vf_buchung in self.vf_buchungenImportedFromFinesse.itervalues():
+            fehler_beschreibung = None
             finesse_journalnummer = vf_buchung.finesse_journalnummer
             if finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
                 finesse_buchung = self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[finesse_journalnummer]
                 # Buchungen in Finesse dürfen sich zwischen Synchronisierungen nicht ändern.
                 #assert finesse_buchung.matches_buchung(vf_buchung)
                 vf_buchung.original_buchung = finesse_buchung
-                assert not finesse_buchung.kopierte_buchungen
-                finesse_buchung.kopierte_buchungen = [vf_buchung]
+                if not finesse_buchung.kopierte_buchung:
+                    finesse_buchung.kopierte_buchung = vf_buchung
+                else:
+                    fehler_beschreibung = u'Mehrere VF-Buchungen zur Finesse-Journalnummer {0}'.format(finesse_journalnummer)
             else:
-                vf_buchung.fehler_beschreibung = u'Originale Finesse-Buchung ({0}) nicht gefunden'.format(finesse_journalnummer)
+                fehler_beschreibung = u'Originale Finesse-Buchung ({0}) nicht gefunden'.format(finesse_journalnummer)
+
+            if fehler_beschreibung:
+                vf_buchung.fehler_beschreibung = fehler_beschreibung
                 self.fehlerhafte_vf_buchungen.append(vf_buchung)
 
     def finesseBuchungenForExportToVF(self):
@@ -253,8 +266,8 @@ class MainController:
         """
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
-            if not finesse_buchung.kopierte_buchungen:
-                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_mit_kostenstelle, self.konten_finesse_nach_vf)
+            if not finesse_buchung.kopierte_buchung:
+                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_finesse_nach_vf)
                 if vf_buchung:
                     result.append(vf_buchung)
                 else:
@@ -263,16 +276,16 @@ class MainController:
 
     def connectImportedFinesseBuchungen(self):
         for finesse_buchung in self.finesse_buchungen_originally_imported_from_vf:
-            vfBuchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
-            #TODO: assert vfBuchung.matches_konten_of_buchung(finesse_buchung)
+            vf_buchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
+            #TODO: assert vf_buchung.matches_konten_of_buchung(finesse_buchung)
             # Buchungen im VF können geändert werden, deshalb kann es mehrere Buchung in Finesse für
             # eine einzige VF-Buchung geben.
-            finesse_buchung.original_buchung = vfBuchung
-            if vfBuchung.kopierte_buchungen:
-                vfBuchung.kopierte_buchungen.append(finesse_buchung)
-                vfBuchung.kopierte_buchungen.sort(key = lambda x: x.finesse_journalnummer)
+            finesse_buchung.original_buchung = vf_buchung
+            if vf_buchung.kopierte_buchungen:
+                vf_buchung.kopierte_buchungen.append(finesse_buchung)
+                vf_buchung.kopierte_buchungen.sort(key = lambda x: x.finesse_journalnummer)
             else:
-                vfBuchung.kopierte_buchungen = [finesse_buchung]
+                vf_buchung.kopierte_buchungen = [finesse_buchung]
 
     def ensure_original_vf_buchung_for_imported_finesse_buchung(self, finesse_buchung):
         vf_nr = finesse_buchung.vf_nr
@@ -292,8 +305,8 @@ class MainController:
         :rtype: list
         """
         result = []
-        for vfBuchung in self.vf_buchungenForExportToFinesse:
-            finesseBuchung = vfBuchung.finesse_buchung_from_vf_buchung()
+        for vf_buchung in self.vf_buchungenForExportToFinesse:
+            finesseBuchung = vf_buchung.finesse_buchung_from_vf_buchung()
             if finesseBuchung:
                 result.append(finesseBuchung)
         return result

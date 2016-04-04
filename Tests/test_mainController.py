@@ -128,7 +128,7 @@ class TestMainController (TestCase):
         controller = self.prepare_controller()
         controller.connectImportedVFBuchungen ()
         self.assertEqual (controller.vf_buchungen[5].original_buchung, controller.finesse_buchungen[0])
-        self.assertEqual (controller.finesse_buchungen[0].kopierte_buchungen, [controller.vf_buchungen[5]])
+        self.assertEqual (controller.finesse_buchungen[0].kopierte_buchung, controller.vf_buchungen[5])
         self.assertEqual (len (controller.fehlerhafte_vf_buchungen), 0)
 
     def test_connectImportedFinesseBuchungen(self):

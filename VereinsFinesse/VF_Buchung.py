@@ -151,9 +151,7 @@ class VF_Buchung:
 
         if konto_im_haben:
             result.konto_haben = self.konto
-            # result.konto_haben_kostenstelle = self.konto_kostenstelle
             result.konto_soll = self.gegen_konto
-            # result.konto_soll_kostenstelle = self.gegen_konto_kostenstelle
             result.betrag_haben = self.betrag
             result.betrag_soll = result.betrag_haben
             if self.has_steuer:
@@ -163,9 +161,7 @@ class VF_Buchung:
                 result.steuer_betrag_haben = Decimal(0)
         else:
             result.konto_soll = self.konto
-            # result.konto_soll_kostenstelle = self.konto_kostenstelle
             result.konto_haben = self.gegen_konto
-            # result.konto_haben_kostenstelle = self.gegen_konto_kostenstelle
             result.betrag_soll = -self.betrag
             result.betrag_haben = result.betrag_soll
             if self.has_steuer:

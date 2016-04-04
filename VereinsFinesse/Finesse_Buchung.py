@@ -65,11 +65,11 @@ class Finesse_Buchung:
         # Die Buchung auf der anderen Seite, von der diese importiert wurde
         self.original_buchung = None
         # Buchungen auf der anderen Seite, die von dieser kopiert wurden (mehrere bei Stornos im VF)
-        self.kopierte_buchungen = None
+        self.kopierte_buchung = None
 
         self.fehler_beschreibung = None
 
-    def init_from_finesse(self, value_dict, steuer_configuration):
+    def init_from_finesse(self, value_dict, steuer_configuration, konten_mit_kostenstelle):
         assert self.datum is None  # the instance must be empty so far
 
         self.source_values = value_dict
@@ -134,6 +134,9 @@ class Finesse_Buchung:
         if self.kostenstelle == 0:
             self.kostenstelle = None
 
+        if not self.prepare_for_vf(konten_mit_kostenstelle):
+            return False
+
         return True
 
     def create_placeholder_for_deleted_vf_buchung(self):
@@ -158,29 +161,27 @@ class Finesse_Buchung:
         :rtype: bool
         """
         # Kostenstelle einem Konto zuordnen:
-        if self.kostenstelle:
-            if self.konto_haben_kostenstelle:
-                assert self.konto_haben_kostenstelle == self.kostenstelle
-            elif self.konto_soll_kostenstelle:
-                assert self.konto_soll_kostenstelle == self.kostenstelle
-            else:
-                if konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
-                    if konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
-                        self.fehler_beschreibung = u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
-                        return False
-                    self.konto_soll_kostenstelle = self.kostenstelle
-                elif konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
-                    self.konto_haben_kostenstelle = self.kostenstelle
-                else:
-                    self.fehler_beschreibung = u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
-                    return False
+        assert not self.konto_haben_kostenstelle
+        assert not self.konto_soll_kostenstelle
+
+        if not self.kostenstelle:
+            return True
+
+        if konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
+            if konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+                self.fehler_beschreibung = u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
+                return False
+            self.konto_soll_kostenstelle = self.kostenstelle
+        elif konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+            self.konto_haben_kostenstelle = self.kostenstelle
+        else:
+            self.fehler_beschreibung = u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
+            return False
+
         return True
 
-    def vf_buchung_for_export(self, konten_mit_kostenstelle, konten_finesse_nach_vf):
+    def vf_buchung_for_export(self, konten_finesse_nach_vf):
         assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
-
-        if not self.prepare_for_vf(konten_mit_kostenstelle):
-            return None
 
         result = VF_Buchung.VF_Buchung()
 
@@ -211,10 +212,10 @@ class Finesse_Buchung:
         result.datum = self.datum
         result.mwst_satz = self.mwst_satz
         result.buchungstext = self.buchungstext
-        result.vf_belegart = 'FD'
+        result.vf_belegart = VF_Buchung.vf_belegart_for_import_from_finesse
         result.vf_belegnummer = CheckDigit.append_checkdigit(unicode(self.finesse_journalnummer))
 
-        return result;
+        return result
 
     @property
     def has_steuer(self):
