@@ -38,10 +38,10 @@ class MainController:
 
             path = self.vf_export_path()
             if path:
-                self.import_VF(path)
+                self.import_vf(path)
             path = self.finesse_export_path()
             if path:
-                self.import_Finesse(path)
+                self.import_finesse(path)
             self.raise_if_pending_errors()
 
             self.connectImportedVFBuchungen()
@@ -131,11 +131,11 @@ class MainController:
         #     finesse_path = u'F0BUS001.CSV'
         return finesse_path
 
-    def import_VF(self, path):
+    def import_vf(self, path):
         """
         """
-        fileHandle = open(path, 'rb')
-        reader = UnicodeCSV.UnicodeDictReader(fileHandle,
+        filehandle = open(path, 'rb')
+        reader = UnicodeCSV.UnicodeDictReader(filehandle,
                                                encoding="windows-1252",
                                                restkey=u'<ÜBERHANG>',
                                                delimiter=";",
@@ -157,19 +157,19 @@ class MainController:
             # die im Vereinsflieger entstanden sind.
             is_import_from_finesse = b.vf_belegart == VF_Buchung.vf_belegart_for_import_from_finesse
             if is_import_from_finesse:
-                buchungsDict = self.vf_buchungenImportedFromFinesse
+                buchungsdict = self.vf_buchungenImportedFromFinesse
             else:
                 # Überspringe Buchungen, die nicht nach Finesse exportiert werden sollen.
                 if not self.is_buchung_exported_to_finesse(b):
                     continue
-                buchungsDict = self.vf_buchungenForExportToFinesseByVFNr
+                buchungsdict = self.vf_buchungenForExportToFinesseByVFNr
 
-            if b.vf_nr in buchungsDict: # keine Split-Buchungen im VF
+            if b.vf_nr in buchungsdict: # keine Split-Buchungen im VF
                 b.fehler_beschreibung = u'Mehrere Buchungen im VF mit laufender Nr {0}'.format(b.vf_nr)
                 self.fehlerhafte_vf_buchungen.append(b)
                 continue
 
-            buchungsDict[b.vf_nr] = b
+            buchungsdict[b.vf_nr] = b
 
             if not is_import_from_finesse:
                 self.vf_buchungenForExportToFinesse.append(b)
@@ -177,8 +177,8 @@ class MainController:
             self.vf_buchungen.append(b) # alle importierten Buchungen werden hier gesammelt
             self.vf_buchungenByNr[b.vf_nr] = b
 
-    def exportFinesseBuchungenToVF(self, vf_buchungen, fileHandle):
-        writer = UnicodeCSV.UnicodeDictWriter(fileHandle,
+    def exportFinesseBuchungenToVF(self, vf_buchungen, filehandle):
+        writer = UnicodeCSV.UnicodeDictWriter(filehandle,
                                    VF_Buchung.VF_Buchung.fieldnames_for_export_to_vf(),
                                    encoding="windows-1252",
                                    restval='',
@@ -190,10 +190,10 @@ class MainController:
             writer.writerow(vf_buchung.dict_for_export_to_vf)
 
 
-    def import_Finesse(self, path):
+    def import_finesse(self, path):
         """ """
-        fileHandle = open(path, 'rb')
-        reader = UnicodeCSV.UnicodeDictReader(fileHandle,
+        filehandle = open(path, 'rb')
+        reader = UnicodeCSV.UnicodeDictReader(filehandle,
                                    encoding="windows-1252",
                                    restkey=u'<ÜBERHANG>',
                                    delimiter=";",
@@ -228,8 +228,8 @@ class MainController:
                     self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[b.finesse_journalnummer] = b
                     self.finesse_buchungen.append(b)
 
-    def exportVFBuchungenToFinesse(self, vfBuchungen, fileHandle):
-        writer = UnicodeCSV.UnicodeDictWriter(fileHandle,
+    def exportVFBuchungenToFinesse(self, vfBuchungen, filehandle):
+        writer = UnicodeCSV.UnicodeDictWriter(filehandle,
                                    Finesse_Buchung.Finesse_Buchung.fieldnames_for_export_to_finesse(),
                                    encoding="utf-8",
                                    restval='',
