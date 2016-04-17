@@ -69,7 +69,7 @@ class Finesse_Buchung:
 
         self.fehler_beschreibung = None
 
-    def init_from_finesse(self, value_dict, steuer_configuration, konten_mit_kostenstelle):
+    def init_from_finesse(self, value_dict, steuer_configuration):
         assert self.datum is None  # the instance must be empty so far
 
         self.source_values = value_dict
@@ -134,9 +134,6 @@ class Finesse_Buchung:
         if self.kostenstelle == 0:
             self.kostenstelle = None
 
-        if not self.prepare_for_vf(konten_mit_kostenstelle):
-            return False
-
         return True
 
     def create_placeholder_for_deleted_vf_buchung(self):
@@ -180,8 +177,11 @@ class Finesse_Buchung:
 
         return True
 
-    def vf_buchung_for_export(self, konten_finesse_nach_vf):
+    def vf_buchung_for_export(self, konten_finesse_nach_vf, konten_mit_kostenstelle):
         assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
+
+        if not self.prepare_for_vf(konten_mit_kostenstelle):
+            return None
 
         result = VF_Buchung.VF_Buchung()
 
