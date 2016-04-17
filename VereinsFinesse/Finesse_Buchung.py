@@ -177,7 +177,7 @@ class Finesse_Buchung:
 
         return True
 
-    def vf_buchung_for_export(self, konten_finesse_nach_vf, konten_mit_kostenstelle):
+    def vf_buchung_for_export(self, konten_finesse_nach_vf, konten_mit_kostenstelle, steuer_configuration):
         assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
 
         if not self.prepare_for_vf(konten_mit_kostenstelle):
@@ -197,16 +197,22 @@ class Finesse_Buchung:
             result.gegen_konto = self.konto_soll
             result.gegen_konto_kostenstelle = self.konto_soll_kostenstelle
             result.betrag = self.betrag_haben
-            if self.has_steuer:
-                result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
+            #if self.has_steuer:
+            #    result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
         else:
             result.konto = self.konto_soll
             result.konto_kostenstelle = self.konto_soll_kostenstelle
             result.gegen_konto = self.konto_haben
             result.gegen_konto_kostenstelle = self.konto_haben_kostenstelle
             result.betrag = -self.betrag_soll
-            if self.has_steuer:
-                result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
+            #if self.has_steuer:
+            #    result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
+
+        if self.steuerfall:
+            if self.steuerfall.art == Configuration.steuerart.Vorsteuer:
+                result.steuer_konto = steuer_configuration.vf_vorsteuer_konto
+            elif self.steuerfall.art == Configuration.steuerart.Umsatzsteuer:
+                result.steuer_konto = steuer_configuration.vf_umsatzsteuer_konto
 
         result.vf_nr = self.vf_nr
         result.datum = self.datum

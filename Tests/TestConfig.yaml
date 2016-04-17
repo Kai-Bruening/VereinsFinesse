@@ -47,12 +47,14 @@ vf_umsatzsteuer_konto:  1879
 steuerfaelle:
   - !Steuerfall
     code:           0
+    art:            vorsteuer
     konto_finesse:  1570
     seite:          soll
     bezeichnung:    freie Eingabe Vorsteuer
 
   - !Steuerfall
     code:           1
+    art:            keine
     konto_finesse:  1775
     seite:          haben
     bezeichnung:    Umsatzsteuerfrei
@@ -60,6 +62,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           2
+    art:            umsatzsteuer
     konto_finesse:  1876
     seite:          haben
     bezeichnung:    7% Umsatzsteuer
@@ -67,6 +70,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           3
+    art:            umsatzsteuer
     konto_finesse:  1870
     seite:          haben
     bezeichnung:    19% Umsatzsteuer
@@ -74,6 +78,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           6
+    art:            vorsteuer
     konto_finesse:  1569
     seite:          soll
     bezeichnung:    19% aufzuteilende Vorsteuer
@@ -81,6 +86,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           7
+    art:            vorsteuer
     konto_finesse:  1566
     seite:          soll
     bezeichnung:    7% aufzuteilende Vorsteuer
@@ -88,6 +94,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           8
+    art:            vorsteuer
     konto_finesse:  1576
     seite:          soll
     bezeichnung:    7% Vorsteuer
@@ -95,6 +102,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           9
+    art:            vorsteuer
     konto_finesse:  1570
     seite:          soll
     bezeichnung:    19% Vorsteuer
@@ -102,6 +110,7 @@ steuerfaelle:
 
   - !Steuerfall
     code:           10
+    art:            vorsteuer
     konto_finesse:  1570
     seite:          soll
     bezeichnung:    19% Vorsteuer

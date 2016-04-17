@@ -3,12 +3,26 @@
 import yaml
 from decimal import Decimal
 
+def enum(**named_values):
+    return type('Enum', (), named_values)
+
+steuerart = enum(Keine=u'keine', Vorsteuer=u'vorsteuer', Umsatzsteuer=u'umsatzsteuer')
 
 class Steuerfall(yaml.YAMLObject):
     yaml_tag = u'!Steuerfall'
 
     def __setstate__(self, state_dict):
         self.code = state_dict['code']
+
+        art = state_dict['art']
+        if art == steuerart.Keine:
+            self.art = steuerart.Keine
+        elif art == steuerart.Vorsteuer:
+            self.art = steuerart.Vorsteuer
+        else:
+            assert art == steuerart.Umsatzsteuer
+            self.art = steuerart.Umsatzsteuer
+
         self.konto_finesse = state_dict['konto_finesse']
         self.bezeichnung = state_dict['bezeichnung']
         if 'ust_satz' in state_dict:
@@ -23,8 +37,8 @@ class Steuerfall(yaml.YAMLObject):
 class SteuerConfiguration:
 
     def __init__(self, config_dict):
-        self.vf_vorsteuer_konto = config_dict[u'vf_vorsteuer_konto']
-        self.vf_umsatzsteuer_konto = config_dict[u'vf_umsatzsteuer_konto']
+        self.vf_vorsteuer_konto = int(config_dict[u'vf_vorsteuer_konto'])
+        self.vf_umsatzsteuer_konto = int(config_dict[u'vf_umsatzsteuer_konto'])
         self.steuerfaelle = config_dict[u'steuerfaelle']
         # Nachschlagtabellen bauen.
         self.steuerfall_by_konto_finesse = {}

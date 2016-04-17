@@ -267,7 +267,7 @@ class MainController:
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
             if not finesse_buchung.kopierte_buchung:
-                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_finesse_nach_vf, self.konten_mit_kostenstelle)
+                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_finesse_nach_vf, self.konten_mit_kostenstelle, self.steuer_configuration)
                 if vf_buchung:
                     result.append(vf_buchung)
                 else:
