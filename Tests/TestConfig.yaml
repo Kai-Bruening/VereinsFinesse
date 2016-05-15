@@ -85,14 +85,6 @@ steuerfaelle:
     ust_satz:       19
 
   - !Steuerfall
-    code:           7
-    art:            vorsteuer
-    konto_finesse:  1566
-    seite:          soll
-    bezeichnung:    7% aufzuteilende Vorsteuer
-    ust_satz:       7
-
-  - !Steuerfall
     code:           8
     art:            vorsteuer
     konto_finesse:  1576
@@ -115,3 +107,11 @@ steuerfaelle:
     seite:          soll
     bezeichnung:    19% Vorsteuer
     ust_satz:       19
+
+  - !Steuerfall
+    code:           7
+    art:            vorsteuer
+    konto_finesse:  1566
+    seite:          soll
+    bezeichnung:    7% aufzuteilende Vorsteuer
+    ust_satz:       7

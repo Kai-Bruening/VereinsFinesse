@@ -9,3 +9,5 @@ setup(console=['vf.py'],
       }
    }
 )
+
+#sys.path.append("C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT")

@@ -1,0 +1,3 @@
+Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr
+08.01.2016;Belastung Tankstelle 41,70 Liter Mogas;59.88;3;9.56;5102;10682;920;;;3485810
+09.01.2016;Erstattung Tankstelle 41,70 Liter Mogas;59.88;3;9.56;10682;5102;920;;;3485828

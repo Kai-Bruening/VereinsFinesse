@@ -149,7 +149,7 @@ class Finesse_Buchung:
         result.steuer_konto = self.steuer_konto
         result.mwst_satz = self.mwst_satz
         result.steuerfall = self.steuerfall
-        result.buchungstext = self.buchungstext
+        result.buchungstext = u'Storno wegen Löschung im VF: {0}'.format(self.buchungstext)
         # result.vf_belegnummer = None
         return result
 
@@ -265,15 +265,34 @@ class Finesse_Buchung:
         result = {}
         result[u'Datum'] = self.datum
         result[u'Buchungstext'] = self.buchungstext
-        result[u'Betrag'] = self.betrag_soll
-        if self.has_steuer and self.finesse_steuercode != 1:
-            result[u'USt-Code'] = self.finesse_steuercode
-            if self.steuer_betrag_haben:
-                result[u'Betrag USt'] = self.steuer_betrag_haben
-            else:   # passiert für Steuercode 1 (Umsatzsteuerfrei)
-                result[u'Betrag USt'] = Decimal(0)
         result[u'Konto Haben'] = self.konto_haben
         result[u'Konto Soll'] = self.konto_soll
+
+        # Der Text-Import nach Finesse kennt nur einen Betrag und einen Steuerbetrag ohne Aufteilung nach Soll und
+        # Haben. Es stellt sich heraus, dass der Betrag immer der Bruttobetrag ist. Die Zuordnung der Steuer zum
+        # richtigen Konto erfolgt automatisch basierend auf dem beteiligten Aufwands- oder Ertragskonto.
+        # Der Normalfall ist dabei, dass Umsatzsteuer im Haben und Vorsteuer im Soll gebucht wird.
+
+        result[u'Betrag'] = self.betrag_soll
+        if self.steuer_betrag_haben and self.steuer_betrag_haben != Decimal(0):
+            assert self.steuer_betrag_soll == Decimal(0)
+            # Steuer wird auf der Habenseite verbucht, also ist der Bruttobetrag im Soll.
+            result[u'Betrag USt'] = self.steuer_betrag_haben
+            result[u'Betrag'] = self.betrag_soll
+        elif self.steuer_betrag_soll and self.steuer_betrag_soll != Decimal(0):
+            # Steuer wird auf der Sollseite verbucht, also ist der Bruttobetrag im Haben.
+            result[u'Betrag USt'] = self.steuer_betrag_soll
+            result[u'Betrag'] = self.betrag_haben
+        else:
+            assert self.betrag_soll == self.betrag_haben
+            result[u'Betrag'] = self.betrag_soll
+
+        if self.steuerfall:
+            result[u'USt-Code'] = self.steuerfall.code
+
+        #if self.has_steuer and self.finesse_steuercode != 1:
+        #    result[u'USt-Code'] = self.finesse_steuercode
+
         if self.kostenstelle:
             result[u'Kostenrechnungsobjekt 1'] = self.kostenstelle
         if self.rechnungsnummer:
@@ -281,4 +300,5 @@ class Finesse_Buchung:
         if self.vf_belegnummer:
             result[u'Belegnummer 1'] = self.vf_belegnummer
         result[u'VF_Nr'] = CheckDigit.append_checkdigit(unicode(self.vf_nr))
+
         return result
