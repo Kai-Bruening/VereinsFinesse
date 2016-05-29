@@ -59,9 +59,9 @@ class TestMainController (TestCase):
 
     def test_import_vf_with_errors(self):
         controller = VereinsFinesse.MainController.MainController()
-        f = open('TestConfig.yaml', 'rb')
+        f = open(u'TestConfig.yaml', 'rb')
         controller.read_config (f)
-        controller.import_vf('VereinsfliegerFehlerhafterExport.csv')
+        controller.import_vf(u'VereinsfliegerFehlerhafterExport.csv')
         self.assertEqual(len(controller.vf_buchungen), 1)
         f = tempfile.NamedTemporaryFile(mode='w+b', prefix='output', suffix='.txt', delete=False)
         temp_path = f.name
@@ -70,14 +70,14 @@ class TestMainController (TestCase):
         controller.report_errors()
         f.flush()
         f.close()
-        self.assertTrue(filecmp.cmp(temp_path, 'VereinsfliegerFehlerhafterExport.txt'))
+        self.assertTrue(filecmp.cmp(temp_path, u'VereinsfliegerFehlerhafterExport.txt'))
         os.remove(temp_path)
 
     def test_import_finesse(self):
         controller = VereinsFinesse.MainController.MainController()
-        f = open ('TestConfig.yaml', 'rb')
+        f = open (u'TestConfig.yaml', 'rb')
         controller.read_config (f)
-        controller.import_finesse('FinesseTestExport.csv')
+        controller.import_finesse(u'FinesseTestExport.csv')
         self.assertEqual (len (controller.finesse_buchungen), 8)
         self.assertEqual (len (controller.finesse_buchungen_originally_imported_from_vf), 5)
        # self.assertEqual (len (controller.finesse_buchungenForExportToVF), 3)
@@ -109,9 +109,9 @@ class TestMainController (TestCase):
 
     def test_import_finesse_with_errors(self):
         controller = VereinsFinesse.MainController.MainController()
-        f = open ('TestConfig.yaml', 'rb')
+        f = open (u'TestConfig.yaml', 'rb')
         controller.read_config (f)
-        controller.import_finesse('FinesseFehlerhafterExport.CSV')
+        controller.import_finesse(u'FinesseFehlerhafterExport.CSV')
         self.assertEqual (len (controller.finesse_buchungen), 3)
         f = tempfile.NamedTemporaryFile (mode='w+b', prefix='output', suffix='.txt', delete=False)
         temp_path = f.name
@@ -120,7 +120,7 @@ class TestMainController (TestCase):
         controller.report_errors()
         f.flush()
         f.close()
-        self.assertTrue(filecmp.cmp(temp_path, 'FinesseFehlerhafterExport.txt'))
+        self.assertTrue(filecmp.cmp(temp_path, u'FinesseFehlerhafterExport.txt'))
         os.remove(temp_path)
         pass
 
@@ -167,39 +167,39 @@ class TestMainController (TestCase):
         controller = self.prepare_controller()
         controller.connectImportedVFBuchungen ()
         export_list = controller.finesseBuchungenForExportToVF ()
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='VFImport', suffix='.csv', delete=False)
-        temp_path = f.name
-        #print f.name
+        result_path = u'VereinsfliegerTestResult.csv'
+        f = open(result_path, 'w+b')
         controller.exportFinesseBuchungenToVF (export_list, f)
-        f.flush()
         f.close()
-        self.assertTrue (filecmp.cmp(temp_path, 'VereinsfliegerTestImport.csv'))
-        os.remove(temp_path)
+        matches = filecmp.cmp(result_path, u'VereinsfliegerTestImport.csv')
+        self.assertTrue (matches)
+        if matches:  # else leave it available for inspection
+           os.remove(result_path)
 
     def test_exportVFBuchungenToFinesse(self):
         controller = self.prepare_controller()
         controller.connectImportedFinesseBuchungen ()
         export_list = controller.vfBuchungenForExportToFinesse ()
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='FinesseImport', suffix='.csv', delete=False)
-        temp_path = f.name
-        #print f.name
+        result_path = u'FinesseTestResult.csv'
+        f = open(result_path, 'w+b')
         controller.exportVFBuchungenToFinesse (export_list, f)
-        f.flush()
         f.close()
-        self.assertTrue (filecmp.cmp(temp_path, 'FinesseTestImport.csv'))
-        os.remove(temp_path)
+        matches = filecmp.cmp(result_path, u'FinesseTestImport.csv')
+        self.assertTrue (matches)
+        if matches:  # else leave it available for inspection
+            os.remove(result_path)
 
     def test_read_config(self):
         controller = VereinsFinesse.MainController.MainController()
-        f = open('TestConfig.yaml', 'rb')
+        f = open(u'TestConfig.yaml', 'rb')
         controller.read_config(f)
-        self.assertIn('steuerfaelle', controller.config)
-        steuercodes = controller.config['steuerfaelle']
+        self.assertIn(u'steuerfaelle', controller.config)
+        steuercodes = controller.config[u'steuerfaelle']
         self.assertEqual(len (steuercodes), 9)
         code1 = steuercodes[1]
         self.assertEqual(code1.code, 1)
         self.assertEqual(code1.konto_finesse, 1775)
-        self.assertEqual(code1.bezeichnung, 'Umsatzsteuerfrei')
+        self.assertEqual(code1.bezeichnung, u'Umsatzsteuerfrei')
         self.assertEqual(code1.ust_satz, 0)
         self.assertEqual(controller.steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(1775, 0), code1)
 
@@ -211,8 +211,8 @@ class TestMainController (TestCase):
 
     def prepare_controller(self):
         controller = VereinsFinesse.MainController.MainController()
-        f = open ('TestConfig.yaml', 'rb')
+        f = open (u'TestConfig.yaml', 'rb')
         controller.read_config (f)
-        controller.import_vf('VereinsfliegerTestExport.csv')
-        controller.import_finesse('FinesseTestExport.csv')
+        controller.import_vf(u'VereinsfliegerTestExport.csv')
+        controller.import_finesse(u'FinesseTestExport.csv')
         return controller

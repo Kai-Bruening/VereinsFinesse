@@ -11,7 +11,7 @@ import filecmp
 class CompleteTestCases (unittest.TestCase):
 
     def test_1(self):
-        self.do_test_in_directory('Test 1')
+        self.do_test_in_directory(u'Test 1')
 
     def test_umsatzsteuer_nach_finesse(self):
         # Übertrag von VF Buchungen mit Umsatzsteuer nach Finesse.
