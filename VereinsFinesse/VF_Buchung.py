@@ -55,10 +55,10 @@ class VF_Buchung:
 
         self.finesse_journalnummer = None
 
-        # Die Buchung auf der anderen Seite, von der diese importiert wurde
-        self.original_buchung = None
-        # Buchungen auf der anderen Seite, die von dieser kopiert wurden (mehrere bei Stornos im VF)
-        self.kopierte_buchungen = None
+        # Die Finess-Buchung, von der dieser bei einem früheren Abgleich importiert wurde.
+        self.original_finesse_buchung = None
+        # Finesse-Buchungen, die von dieser bei früheren Abgleichen kopiert wurden (mehrere bei Stornos im VF).
+        self.kopierte_finesse_buchungen = None
 
         self.fehler_beschreibung = None
 
@@ -132,6 +132,47 @@ class VF_Buchung:
             kostenstelle = self.gegen_konto_kostenstelle
         return kostenstelle
 
+    @property
+    def is_null(self):
+        # Buchungen im VF mit Betrag = 0 sind möglich und entstehen z.B. beim Löschen von Rechnungen.
+        # Die Zuordnung der Konten auf Soll und Haben nach dem Vorzeichen ist dann nicht möglich.
+        return self.betrag == Decimal(0)
+
+    @property
+    def konto_haben(self):
+        assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
+        return self.konto if self.betrag > Decimal(0) else self.gegen_konto
+
+    @property
+    def konto_soll(self):
+        assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
+        return self.gegen_konto if self.betrag > Decimal(0) else self.konto
+
+    def validate_for_original_finesse_buchung(self, original_finesse_buchung):
+        if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
+            assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
+            return False
+
+        if original_finesse_buchung.steuerfall:
+            if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
+                return False
+        else:
+            if self.steuerfall:
+                return False
+
+        if (self.konto == original_finesse_buchung.vf_konto
+            and self.gegen_konto == original_finesse_buchung.vf_gegen_konto
+            and self.betrag == original_finesse_buchung.vf_betrag):
+            return True
+        # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
+        if (not original_finesse_buchung.has_steuer
+            and (self.konto == original_finesse_buchung.vf_gegen_konto
+                 and self.gegen_konto == original_finesse_buchung.vf_konto
+                 and self.betrag == -original_finesse_buchung.vf_betrag)
+            ):
+            return True
+        return False
+
     def finesse_buchung_from_vf_buchung(self):
         """
         :rtype: Finesse_Buchung
@@ -139,8 +180,8 @@ class VF_Buchung:
         assert self.vf_belegart != vf_belegart_for_import_from_finesse
 
         # Kontozuordnung bestimmen.
-        if self.kopierte_buchungen:
-            eine_finesse_buchung = self.kopierte_buchungen[0]
+        if self.kopierte_finesse_buchungen:
+            eine_finesse_buchung = self.kopierte_finesse_buchungen[0]
             konto_im_haben = self.konto == eine_finesse_buchung.konto_haben
             assert konto_im_haben or self.konto == eine_finesse_buchung.konto_soll
         else:
@@ -171,8 +212,8 @@ class VF_Buchung:
                 result.steuer_betrag_soll = Decimal(0)
 
         # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
-        if self.kopierte_buchungen:
-            for iBuchung in self.kopierte_buchungen:
+        if self.kopierte_finesse_buchungen:
+            for iBuchung in self.kopierte_finesse_buchungen:
                 assert iBuchung.matches_konten_of_buchung(result)
                 result.betrag_soll -= iBuchung.betrag_soll
                 result.betrag_haben -= iBuchung.betrag_haben

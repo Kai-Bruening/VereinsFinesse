@@ -61,15 +61,16 @@ class Finesse_Buchung:
         self.mwst_satz = None
         self.rechnungsnummer = None
         self.steuerfall = None
+        self.vf_konto_ist_konto_haben = None
 
-        # Die Buchung auf der anderen Seite, von der diese importiert wurde
-        self.original_buchung = None
-        # Buchungen auf der anderen Seite, die von dieser kopiert wurden (mehrere bei Stornos im VF)
-        self.kopierte_buchung = None
+        # Die VF-Buchung, von der diese bei einem früheren Abgleich importiert wurde.
+        self.original_vf_buchung = None
+        # VF-Buchung, die von dieser bei einem früheren Abgleich kopiert wurde.
+        self.kopierte_vf_buchung = None
 
         self.fehler_beschreibung = None
 
-    def init_from_finesse(self, value_dict, steuer_configuration):
+    def init_from_finesse(self, value_dict, steuer_configuration, konten_finesse_nach_vf):
         assert self.datum is None  # the instance must be empty so far
 
         self.source_values = value_dict
@@ -134,7 +135,42 @@ class Finesse_Buchung:
         if self.kostenstelle == 0:
             self.kostenstelle = None
 
+        if self.has_steuer:
+            # Im VF ist 'Betrag' immer der Bruttobetrag, der damit auf 'Konto' gebucht wird.
+            # Das heißt, 'Konto' ist das Haben-Konto wenn die Steuer im Soll gebucht wird.
+            self.vf_konto_ist_konto_haben = self.steuer_betrag_haben == Decimal(0)
+        else:
+            # Wenn es die Freiheit gibt (keine Steuer) ordnen wir das Mitgliederkonto dem VF-'Konto' zu, so dass
+            # es im Journal des VF möglichst links steht.
+            self.vf_konto_ist_konto_haben = konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
+
         return True
+
+    @property
+    def vf_konto(self):
+        return self.konto_haben if self.vf_konto_ist_konto_haben else self.konto_soll
+
+    @property
+    def vf_gegen_konto(self):
+        return self.konto_soll if self.vf_konto_ist_konto_haben else self.konto_haben
+
+    @property
+    def vf_betrag(self):
+        return self.betrag_haben if self.vf_konto_ist_konto_haben else -self.betrag_soll
+
+    def validate_for_original_vf_buchung(self, original_vf_buchung):
+        # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
+        # Daten müssen bleiben.
+        if self.steuerfall != original_vf_buchung.steuerfall:
+            return False
+        if original_vf_buchung.is_null:
+            # Im entarteten Fall ist die Zuordnung der Konten in VF zu Soll und Haben nicht definiert.
+            return ((self.konto_haben == original_vf_buchung.konto
+                    and self.konto_soll == original_vf_buchung.gegen_konto)
+                or (self.konto_soll == original_vf_buchung.konto
+                    and self.konto_haben == original_vf_buchung.gegen_konto))
+        return (self.konto_haben == original_vf_buchung.konto_haben
+            and self.konto_soll == original_vf_buchung.konto_soll)
 
     def create_placeholder_for_deleted_vf_buchung(self):
         # Start with an empty VF_Buchung

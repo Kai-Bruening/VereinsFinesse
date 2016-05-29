@@ -33,6 +33,11 @@ class Steuerfall(yaml.YAMLObject):
         assert seite_text == 'soll' or seite_text == 'haben'
         self.steuer_ins_haben = seite_text == 'haben'
 
+    def matches_vf_steuerfall(self, vf_steuerfall):
+        if not vf_steuerfall:
+            return not self.ust_satz or self.ust_satz == Decimal(0)
+        return (self.art == vf_steuerfall.art
+                and self.ust_satz == vf_steuerfall.ust_satz)
 
 class SteuerConfiguration:
 

@@ -1,8 +1,8 @@
 Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:
-
 Fehler;Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr
 Beide Konten haben eine Kostenstelle;242122;15.11.2015;5155-222;5102-111;0,00;1876;7;Gebührenabrechnung;;0;20150014
 MwSt-Satz > 0 (7) ohne Steuerkonto;242123;15.11.2015;5155-221;11564;0,00;;7;Gebührenabrechnung;;0;20150014
 MwSt-Satz (19) aus Vereinsflieger passt nicht zum dem des Steuerkontos (7);242126;15.11.2015;5155-222;11564;0,54;1876;19;Gebührenabrechnung;;0;20150015
 Kombination aus Steuerkonto (1888) und Steuersatz (7) unbekannt;242127;15.11.2015;5155;11564;2,20;1888;7;Gebührenabrechnung;;0;20150015
 Falsche Prüfziffer für Finesse Journalnummer in Belegnummer (123);132705;03.06.2015;1222;11564;101,10;;0;Rückbuchung Lastschrift;FD;123;
+

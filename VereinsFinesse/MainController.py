@@ -207,7 +207,7 @@ class MainController:
                 raise StopRun()
 
             b = Finesse_Buchung.Finesse_Buchung()
-            if not b.init_from_finesse(row_dict, self.steuer_configuration):
+            if not b.init_from_finesse(row_dict, self.steuer_configuration, self.konten_finesse_nach_vf):
                 self.fehlerhafte_finesse_buchungen.append(b)
                 continue
 
@@ -244,17 +244,20 @@ class MainController:
         for vf_buchung in self.vf_buchungenImportedFromFinesse.itervalues():
             fehler_beschreibung = None
             finesse_journalnummer = vf_buchung.finesse_journalnummer
-            if finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
-                finesse_buchung = self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[finesse_journalnummer]
-                # Buchungen in Finesse dürfen sich zwischen Synchronisierungen nicht ändern.
-                #assert finesse_buchung.matches_buchung(vf_buchung)
-                vf_buchung.original_buchung = finesse_buchung
-                if not finesse_buchung.kopierte_buchung:
-                    finesse_buchung.kopierte_buchung = vf_buchung
-                else:
-                    fehler_beschreibung = u'Mehrere VF-Buchungen zur Finesse-Journalnummer {0}'.format(finesse_journalnummer)
+            if not finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
+                fehler_beschreibung = u'Originale Finesse-Buchung (Dialog: {0}) nicht gefunden'.format(finesse_journalnummer)
             else:
-                fehler_beschreibung = u'Originale Finesse-Buchung ({0}) nicht gefunden'.format(finesse_journalnummer)
+                original_finesse_buchung = self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[finesse_journalnummer]
+                if original_finesse_buchung.kopierte_vf_buchung:
+                    fehler_beschreibung = u'Mehrere VF-Buchungen zu einer Journalnummer in Finesse (Dialog: {0})'.format(finesse_journalnummer)
+                else:
+                    # Buchungen in Finesse dürfen sich zwischen Synchronisierungen nicht ändern, und die Kopie
+                    # im VF darf auch nicht geändert werden.
+                    if not vf_buchung.validate_for_original_finesse_buchung(original_finesse_buchung):
+                        fehler_beschreibung = u'Importierte VF-Buchung weicht von originaler Finesse-Buchung (Dialog: {0}) ab'.format(finesse_journalnummer)
+                    else:
+                        vf_buchung.original_finesse_buchung = original_finesse_buchung
+                        original_finesse_buchung.kopierte_vf_buchung = vf_buchung
 
             if fehler_beschreibung:
                 vf_buchung.fehler_beschreibung = fehler_beschreibung
@@ -266,7 +269,7 @@ class MainController:
         """
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
-            if not finesse_buchung.kopierte_buchung:
+            if not finesse_buchung.kopierte_vf_buchung:
                 vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_finesse_nach_vf, self.konten_mit_kostenstelle, self.steuer_configuration)
                 if vf_buchung:
                     result.append(vf_buchung)
@@ -276,16 +279,26 @@ class MainController:
 
     def connectImportedFinesseBuchungen(self):
         for finesse_buchung in self.finesse_buchungen_originally_imported_from_vf:
-            vf_buchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
-            #TODO: assert vf_buchung.matches_konten_of_buchung(finesse_buchung)
-            # Buchungen im VF können geändert werden, deshalb kann es mehrere Buchung in Finesse für
-            # eine einzige VF-Buchung geben.
-            finesse_buchung.original_buchung = vf_buchung
-            if vf_buchung.kopierte_buchungen:
-                vf_buchung.kopierte_buchungen.append(finesse_buchung)
-                vf_buchung.kopierte_buchungen.sort(key = lambda x: x.finesse_journalnummer)
+            fehler_beschreibung = None
+            original_vf_buchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
+            # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
+            # Daten müssen bleiben.
+            if not finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung):
+                fehler_beschreibung = u'Importierte Finesse-Buchung weicht von originaler VF-Buchung ({0}) ab'.format(
+                    original_vf_buchung.vf_nr)
             else:
-                vf_buchung.kopierte_buchungen = [finesse_buchung]
+                # Buchungen im VF können geändert werden, deshalb kann es mehrere Buchung in Finesse für
+                # eine einzige VF-Buchung geben.
+                finesse_buchung.original_vf_buchung = original_vf_buchung
+                if original_vf_buchung.kopierte_finesse_buchungen:
+                    original_vf_buchung.kopierte_finesse_buchungen.append(finesse_buchung)
+                    original_vf_buchung.kopierte_finesse_buchungen.sort(key = lambda x: x.finesse_journalnummer)
+                else:
+                    original_vf_buchung.kopierte_finesse_buchungen = [finesse_buchung]
+
+            if fehler_beschreibung:
+                finesse_buchung.fehler_beschreibung = fehler_beschreibung
+                self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
 
     def ensure_original_vf_buchung_for_imported_finesse_buchung(self, finesse_buchung):
         vf_nr = finesse_buchung.vf_nr
@@ -317,12 +330,14 @@ class MainController:
 
     def report_errors(self):
         if len(self.fehlerhafte_vf_buchungen) > 0:
-            print u"Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:\n"
+            print u"Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:"
             self.write_fehlerhafte_buchungen(self.fehlerhafte_vf_buchungen, self.vf_export_fieldnames)
+            print u""
 
         if len(self.fehlerhafte_finesse_buchungen) > 0:
-            print u"Folgende Buchungen aus Finesse können nicht verarbeitet werden:\n"
+            print u"Folgende Buchungen aus Finesse können nicht verarbeitet werden:"
             self.write_fehlerhafte_buchungen(self.fehlerhafte_finesse_buchungen, self.finesse_export_fieldnames)
+            print u""
 
     def write_fehlerhafte_buchungen(self, buchungen, fieldnames):
         fieldnames.insert(0, u'Fehler')

@@ -63,15 +63,15 @@ class TestMainController (TestCase):
         controller.read_config (f)
         controller.import_vf(u'VereinsfliegerFehlerhafterExport.csv')
         self.assertEqual(len(controller.vf_buchungen), 1)
-        f = tempfile.NamedTemporaryFile(mode='w+b', prefix='output', suffix='.txt', delete=False)
-        temp_path = f.name
-        #print f.name
+        result_path = u'VereinsfliegerFehlerhafterExport_Result.txt'
+        f = open(result_path, 'w+b')
         sys.stdout = codecs.getwriter('windows-1252')(f)
         controller.report_errors()
-        f.flush()
         f.close()
-        self.assertTrue(filecmp.cmp(temp_path, u'VereinsfliegerFehlerhafterExport.txt'))
-        os.remove(temp_path)
+        matches = filecmp.cmp(result_path, u'VereinsfliegerFehlerhafterExport.txt')
+        self.assertTrue (matches)
+        if matches:  # else leave it available for inspection
+            os.remove(result_path)
 
     def test_import_finesse(self):
         controller = VereinsFinesse.MainController.MainController()
@@ -113,38 +113,37 @@ class TestMainController (TestCase):
         controller.read_config (f)
         controller.import_finesse(u'FinesseFehlerhafterExport.CSV')
         self.assertEqual (len (controller.finesse_buchungen), 3)
-        f = tempfile.NamedTemporaryFile (mode='w+b', prefix='output', suffix='.txt', delete=False)
-        temp_path = f.name
-        #print f.name
+        result_path = u'FinesseFehlerhafterExport_Result.txt'
+        f = open(result_path, 'w+b')
         sys.stdout = codecs.getwriter('windows-1252')(f)
         controller.report_errors()
-        f.flush()
         f.close()
-        self.assertTrue(filecmp.cmp(temp_path, u'FinesseFehlerhafterExport.txt'))
-        os.remove(temp_path)
-        pass
+        matches = filecmp.cmp(result_path, u'FinesseFehlerhafterExport.txt')
+        self.assertTrue (matches)
+        if matches:  # else leave it available for inspection
+            os.remove(result_path)
 
     def test_connectImportedVFBuchungen(self):
         controller = self.prepare_controller()
         controller.connectImportedVFBuchungen ()
-        self.assertEqual (controller.vf_buchungen[5].original_buchung, controller.finesse_buchungen[0])
-        self.assertEqual (controller.finesse_buchungen[0].kopierte_buchung, controller.vf_buchungen[5])
+        self.assertEqual (controller.vf_buchungen[5].original_finesse_buchung, controller.finesse_buchungen[0])
+        self.assertEqual (controller.finesse_buchungen[0].kopierte_vf_buchung, controller.vf_buchungen[5])
         self.assertEqual (len (controller.fehlerhafte_vf_buchungen), 0)
 
     def test_connectImportedFinesseBuchungen(self):
         controller = self.prepare_controller()
         controller.connectImportedFinesseBuchungen ()
 
-        self.assertEqual (controller.finesse_buchungen[2].original_buchung, controller.vf_buchungen[0])
-        self.assertEqual (controller.vf_buchungen[0].kopierte_buchungen, [controller.finesse_buchungen[2]])
+        self.assertEqual (controller.finesse_buchungen[2].original_vf_buchung, controller.vf_buchungen[0])
+        self.assertEqual (controller.vf_buchungen[0].kopierte_finesse_buchungen, [controller.finesse_buchungen[2]])
 
-        self.assertEqual (controller.finesse_buchungen[3].original_buchung, controller.vf_buchungen[1])
-        self.assertEqual (controller.finesse_buchungen[4].original_buchung, controller.vf_buchungen[1])
-        self.assertEqual (controller.vf_buchungen[1].kopierte_buchungen,
+        self.assertEqual (controller.finesse_buchungen[3].original_vf_buchung, controller.vf_buchungen[1])
+        self.assertEqual (controller.finesse_buchungen[4].original_vf_buchung, controller.vf_buchungen[1])
+        self.assertEqual (controller.vf_buchungen[1].kopierte_finesse_buchungen,
                           [controller.finesse_buchungen[3], controller.finesse_buchungen[4]])
 
-        self.assertEqual (controller.finesse_buchungen[5].original_buchung, controller.vf_buchungen[3])
-        self.assertEqual (controller.vf_buchungen[3].kopierte_buchungen, [controller.finesse_buchungen[5]])
+        self.assertEqual (controller.finesse_buchungen[5].original_vf_buchung, controller.vf_buchungen[3])
+        self.assertEqual (controller.vf_buchungen[3].kopierte_finesse_buchungen, [controller.finesse_buchungen[5]])
 
         self.assertEqual (len (controller.fehlerhafte_finesse_buchungen), 0)
 
@@ -166,7 +165,7 @@ class TestMainController (TestCase):
     def test_exportFinesseBuchungenToVF(self):
         controller = self.prepare_controller()
         controller.connectImportedVFBuchungen ()
-        export_list = controller.finesseBuchungenForExportToVF ()
+        export_list = controller.finesseBuchungenForExportToVF()
         result_path = u'VereinsfliegerTestResult.csv'
         f = open(result_path, 'w+b')
         controller.exportFinesseBuchungenToVF (export_list, f)
