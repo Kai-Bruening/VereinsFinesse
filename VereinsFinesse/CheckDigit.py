@@ -59,7 +59,7 @@ def check_and_strip_checkdigit(id_with_check):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print "Need a number to calculated a check digit for."
+        print "Need a number to calculate a check digit for."
         exit(1)
     text = sys.argv[1]
     result = checkdigit(text)
