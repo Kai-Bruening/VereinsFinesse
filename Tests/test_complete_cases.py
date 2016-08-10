@@ -28,6 +28,10 @@ class CompleteTestCases (unittest.TestCase):
         # Buchung im VF gelöscht wurde.
         self.do_test_in_directory(u'Gelöschte Buchung im VF')
 
+    def test_brutto_netto_auswahl(self):
+        # Testet die korrekte Zuordnung von Brutto und Nettobeträgen auf die Konten im Export von VF.
+        self.do_test_in_directory(u'BruttoNettoAuswahl')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

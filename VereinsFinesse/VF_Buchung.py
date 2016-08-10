@@ -173,7 +173,7 @@ class VF_Buchung:
             return True
         return False
 
-    def finesse_buchung_from_vf_buchung(self):
+    def finesse_buchung_from_vf_buchung(self, konten_mit_kostenstelle):
         """
         :rtype: Finesse_Buchung
         """
@@ -190,40 +190,69 @@ class VF_Buchung:
         # Initialisieren einer Finesse-Buchung mit den Werten der VF-Buchung.
         result = Finesse_Buchung.Finesse_Buchung()
 
+        # Beträge
+        betrag_brutto = self.betrag if konto_im_haben else -self.betrag
+        if self.has_steuer:
+            result.steuer_konto = self.steuer_konto  # TODO: map to correct Konto
+            betrag_netto = round_to_two_places(betrag_brutto / (Decimal(1) + self.mwst_satz / Decimal(100)))
+        else:
+            betrag_netto = betrag_brutto
+
         if konto_im_haben:
             result.konto_haben = self.konto
             result.konto_soll = self.gegen_konto
-            result.betrag_haben = self.betrag
-            result.betrag_soll = result.betrag_haben
-            if self.has_steuer:
-                result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
-                result.betrag_soll = round_to_two_places(result.betrag_haben / (Decimal(1) + self.mwst_satz / Decimal(100)))
-                result.steuer_betrag_soll = result.betrag_haben - result.betrag_soll
-                result.steuer_betrag_haben = Decimal(0)
+            # result.betrag_haben = self.betrag
+            # result.betrag_soll = result.betrag_haben
+            # if self.has_steuer:
+            #     result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
+            #     result.betrag_soll = round_to_two_places(result.betrag_haben / (Decimal(1) + self.mwst_satz / Decimal(100)))
+            #     result.steuer_betrag_soll = result.betrag_haben - result.betrag_soll
+            #     result.steuer_betrag_haben = Decimal(0)
         else:
             result.konto_soll = self.konto
             result.konto_haben = self.gegen_konto
-            result.betrag_soll = -self.betrag
-            result.betrag_haben = result.betrag_soll
-            if self.has_steuer:
-                result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
-                result.betrag_haben = round_to_two_places(result.betrag_soll / (Decimal(1) + self.mwst_satz / Decimal(100)))
-                result.steuer_betrag_haben = result.betrag_soll - result.betrag_haben
-                result.steuer_betrag_soll = Decimal(0)
+            # result.betrag_soll = -self.betrag
+            # result.betrag_haben = result.betrag_soll
+            # # if self.has_steuer:
+            #     result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
+            #     result.betrag_haben = round_to_two_places(result.betrag_soll / (Decimal(1) + self.mwst_satz / Decimal(100)))
+            #     result.steuer_betrag_haben = result.betrag_soll - result.betrag_haben
+            #     result.steuer_betrag_soll = Decimal(0)
 
-        # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
+        # Der Nettobetrag geht immer aufs Erfolgskonto.
+        if konten_mit_kostenstelle.enthaelt_konto(result.konto_soll):
+            if konten_mit_kostenstelle.enthaelt_konto(result.konto_haben):
+                self.fehler_beschreibung = u'Buchung mit Steuer von Erfolgskonto auf Erfolgskonto ist nicht sinnvoll'
+                return None
+            result.betrag_haben = betrag_brutto
+            result.steuer_betrag_haben = Decimal(0)
+            result.betrag_soll = betrag_netto
+            result.steuer_betrag_soll = betrag_brutto - betrag_netto
+        elif konten_mit_kostenstelle.enthaelt_konto(result.konto_haben):
+            result.betrag_soll = betrag_brutto
+            result.steuer_betrag_soll = Decimal(0)
+            result.betrag_haben = betrag_netto
+            result.steuer_betrag_haben = betrag_brutto - betrag_netto
+        elif not self.has_steuer:
+            result.betrag_soll = betrag_brutto
+            result.steuer_betrag_soll = Decimal(0)
+            result.betrag_haben = betrag_brutto
+            result.steuer_betrag_haben = Decimal(0)
+        else:
+            self.fehler_beschreibung = u'Buchungen mit Steuer müssen ein Erfolgskonto benutzen'
+            return None
+
+            # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
         if self.kopierte_finesse_buchungen:
             for iBuchung in self.kopierte_finesse_buchungen:
                 assert iBuchung.matches_konten_of_buchung(result)
                 result.betrag_soll -= iBuchung.betrag_soll
                 result.betrag_haben -= iBuchung.betrag_haben
                 if self.has_steuer:
+                    assert (result.steuer_betrag_soll == Decimal(0)) or (iBuchung.steuer_betrag_haben == Decimal(0))
+                    assert (result.steuer_betrag_haben == Decimal(0)) or (iBuchung.steuer_betrag_soll == Decimal(0))
                     result.steuer_betrag_soll -= iBuchung.steuer_betrag_soll
                     result.steuer_betrag_haben -= iBuchung.steuer_betrag_haben
-
-        # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
-        if result.betrag_soll == Decimal(0) and result.betrag_haben == Decimal(0):
-            return None
 
         result.vf_nr = self.vf_nr
         result.buchungstext = self.buchungstext

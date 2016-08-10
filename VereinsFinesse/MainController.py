@@ -9,6 +9,7 @@ import Finesse_Buchung
 import csv
 import UnicodeCSV
 import Configuration
+from decimal import Decimal
 
 csv.register_dialect('Vereinsflieger', delimiter=";", strict=True)
 
@@ -319,9 +320,17 @@ class MainController:
         """
         result = []
         for vf_buchung in self.vf_buchungenForExportToFinesse:
-            finesseBuchung = vf_buchung.finesse_buchung_from_vf_buchung()
+            finesseBuchung = vf_buchung.finesse_buchung_from_vf_buchung(self.konten_mit_kostenstelle)
             if finesseBuchung:
-                result.append(finesseBuchung)
+                # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
+                if finesseBuchung.betrag_soll != Decimal(0) and finesseBuchung.betrag_haben != Decimal(0):
+                    result.append(finesseBuchung)
+            else:
+                self.fehlerhafte_vf_buchungen.append(vf_buchung)
+
+        if len(self.fehlerhafte_vf_buchungen) > 0:
+            raise StopRun()
+
         return result
 
     def raise_if_pending_errors(self):

@@ -36,7 +36,7 @@ konten_mit_kostenstelle:
   # Nummernbereich beschrieben
   - !Kontenbereich
     start:          2000
-    ende:           6999
+    ende:           8910
 
 # Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
 # Steuercode für Finess zu bestimmen.
