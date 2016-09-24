@@ -104,7 +104,8 @@ class VF_Buchung:
                 return False
 
             # Der Steuersatz aus dem Vereinsflieger muss zum Steuerkonto passen.
-            if steuer_satz != self.steuerfall.ust_satz:
+            if (steuer_satz != self.steuerfall.ust_satz
+                and not (steuer_satz == Decimal(0) and not self.steuerfall.ust_satz)):
                 self.fehler_beschreibung = (u'MwSt-Satz ({0}) aus Vereinsflieger passt nicht zum dem des Steuerkontos ({1})'
                                             .format(steuer_satz, self.steuerfall.ust_satz))
                 return False

@@ -56,8 +56,12 @@ class SteuerConfiguration:
     def steuerfall_for_vf_steuerkonto_and_steuersatz(self, konto, satz):
         if konto == self.vf_vorsteuer_konto:
             for fall in self.steuerfaelle:
-                if not fall.steuer_ins_haben and fall.ust_satz == satz:
-                    return fall
+                if not fall.steuer_ins_haben:
+                    if fall.ust_satz == satz:
+                        return fall
+                    # Special case detection for "freie Eingabe Vorsteuer"
+                    if satz == Decimal(0) and not fall.ust_satz:
+                        return fall
             return None
         elif konto == self.vf_umsatzsteuer_konto:
             for fall in self.steuerfaelle:

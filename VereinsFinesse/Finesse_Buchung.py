@@ -148,15 +148,29 @@ class Finesse_Buchung:
 
     @property
     def vf_konto(self):
-        return self.konto_haben if self.vf_konto_ist_konto_haben else self.konto_soll
+        return self.vf_konto_from_finesse_konto(self.konto_haben if self.vf_konto_ist_konto_haben else self.konto_soll)
 
     @property
     def vf_gegen_konto(self):
-        return self.konto_soll if self.vf_konto_ist_konto_haben else self.konto_haben
+        return self.vf_konto_from_finesse_konto(self.konto_soll if self.vf_konto_ist_konto_haben else self.konto_haben)
 
     @property
     def vf_betrag(self):
         return self.betrag_haben if self.vf_konto_ist_konto_haben else -self.betrag_soll
+
+    def vf_konto_from_finesse_konto(self, finesse_konto):
+        # TODO: use config for this.
+        if (finesse_konto == 1576 or
+                    finesse_konto == 1579 or
+                    finesse_konto == 1569 or
+                    finesse_konto == 1566 or
+                    finesse_konto == 1570):
+            return 1599
+        if (finesse_konto == 1876 or
+                        finesse_konto == 1870 or
+                        finesse_konto == 1775):
+                return 1879
+        return finesse_konto
 
     def validate_for_original_vf_buchung(self, original_vf_buchung):
         # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
