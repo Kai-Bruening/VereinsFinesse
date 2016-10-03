@@ -56,9 +56,19 @@ class CompleteTestCases (unittest.TestCase):
         controller.connectImportedVFBuchungen()
         controller.connectImportedFinesseBuchungen()
 
+        self.assertEqual(len(controller.fehlerhafte_vf_buchungen), 0, "Fehlerhafte VF Buchungen")
+        self.assertEqual(len(controller.fehlerhafte_finesse_buchungen), 0, "Fehlerhafte Finesse Buchungen")
+
+        controller.entferne_stronierte_finesse_buchungen()
+
+        vf_export_list = controller.finesseBuchungenForExportToVF()
+        finesse_export_list = controller.vfBuchungenForExportToFinesse()
+
+        self.assertEqual(len(controller.fehlerhafte_vf_buchungen), 0, "Fehlerhafte VF Buchungen")
+        self.assertEqual(len(controller.fehlerhafte_finesse_buchungen), 0, "Fehlerhafte Finesse Buchungen")
+
         # Export for VF
         expected_path = os.path.join(test_dir, u'vf_expected.csv')
-        vf_export_list = controller.finesseBuchungenForExportToVF()
         if len(vf_export_list ) > 0:
             result_path = os.path.join(test_dir, u'vf_result.csv')
             f = open(result_path , 'w+b')
@@ -75,7 +85,6 @@ class CompleteTestCases (unittest.TestCase):
 
         # Export for Finesse
         expected_path = os.path.join(test_dir, u'finesse_expected.csv')
-        finesse_export_list = controller.vfBuchungenForExportToFinesse()
         if len(finesse_export_list) > 0:
             result_path = os.path.join(test_dir, u'finesse_result.csv')
             f = open(result_path, 'w+b')

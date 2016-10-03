@@ -1,3 +1,4 @@
 Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr
+31.05.2016;11660;69.60;5153-322;1879;7;Test 5 kein Storno;FD;56929
 31.05.2016;11659;-69.60;5153-322;1879;7;Test 4;FD;56895
 31.05.2016;11659;69.00;5153-322;1879;7;Test 4 kein Storno;FD;56903
