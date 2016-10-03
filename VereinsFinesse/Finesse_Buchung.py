@@ -352,3 +352,37 @@ class Finesse_Buchung:
         result[u'VF_Nr'] = CheckDigit.append_checkdigit(unicode(self.vf_nr))
 
         return result
+
+    @property
+    def konten_key(self):
+        # Vertauschte Konten müssen den gleichen Schlüssel ergeben.
+        if self.konto_haben < self.konto_soll:
+            konto1 = self.konto_haben
+            konto2 = self.konto_soll
+        else:
+            konto1 = self.konto_soll
+            konto2 = self.konto_haben
+        return konto1, konto2, self.kostenstelle
+
+    def lookup_storno_partner(self, storno_candidates):
+        """
+        storno_candidates ist eine liste von Buchungen mit gleichem konten_key wie diese Buchung.
+        Suche die erste Buchung aus dieser Liste, die diese Buchung storniert, das heißt, ihren Effekt umkehrt.
+        """
+        for candidate in storno_candidates:
+            if candidate.konto_soll == self.konto_soll:
+                # Wenn die Konten gleich sind, müssen die Beträge entgegengesetzt sein.
+                if (candidate.betrag_soll == -self.betrag_soll and
+                        candidate.betrag_haben == -self.betrag_haben and
+                        (not self.steuerfall or
+                             (candidate.steuer_betrag_soll == -self.steuer_betrag_soll and
+                              candidate.steuer_betrag_haben == -self.steuer_betrag_haben))):
+                    return candidate
+            else:
+                # Andernfalls müssen die Beträge bei vertauschten Konten gleich sein.
+                if (candidate.betrag_soll == self.betrag_haben and
+                            candidate.betrag_haben == self.betrag_soll and
+                            candidate.steuer_betrag_soll == self.steuer_betrag_haben and
+                            candidate.steuer_betrag_haben == self.steuer_betrag_soll):
+                    return candidate
+        return None

@@ -32,6 +32,12 @@ class CompleteTestCases (unittest.TestCase):
         # Testet die korrekte Zuordnung von Brutto und Nettobeträgen auf die Konten im Export von VF.
         self.do_test_in_directory(u'BruttoNettoAuswahl')
 
+    def test_storno_in_finesse(self):
+        # Wenn eine Buchung in Finesse storniert wird, bevor sie in VF übertragen ist, darf sie nicht
+        # mehr nach VF übertragen werden. So können z.B. Buchungen mit falschem Konto oder Kostenstelle
+        # storniert werden, ohne dass das falsche Konto im VF angelegt werden muss.
+        self.do_test_in_directory(u'Storno in Finesse')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

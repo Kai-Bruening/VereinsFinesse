@@ -21,6 +21,8 @@ class MainController:
         self.finesse_buchungen = []
         self.finesse_buchungen_originally_imported_from_vf = []
         self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr = {}
+        self.finesse_buchungen_by_konten_key = {}   # Für den Storno-Check
+
         self.vf_buchungen = []
         self.vf_buchungenImportedFromFinesse = {}
         self.vf_buchungenForExportToFinesse = []
@@ -212,22 +214,43 @@ class MainController:
                 self.fehlerhafte_finesse_buchungen.append(b)
                 continue
 
+            self.finesse_buchungen.append(b)    # used by unit tests only
+
             # Buchungen in Finesse, die bei einem früheren Abgleich aus dem Vereinsflieger übernommen wurden, müssen
             # hier wiedererkannt werden, um erneuten Export nach Finesse zu verhindern.
             if b.vf_nr:
                 self.finesse_buchungen_originally_imported_from_vf.append(b)
-                self.finesse_buchungen.append(b)
 
             # Nur Buchungen auf Mitgliederkonten werden von Finesse in den Vereinsflieger übernommen (um die Salden
             # auf den Mitgliederkonten parallel zu halten).
             elif (b.finesse_buchungs_journal == Finesse_Buchung.finesse_fournal_for_export_to_vf
                   and self.is_buchung_exported_to_vf(b)):
-                if b.finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
-                    b.fehler_beschreibung = u'Mitgliederbuchung aus Finesse mit nicht-eindeutiger Journalnummer ({0})'.format(b.finesse_journalnummer)
-                    self.fehlerhafte_finesse_buchungen.append(b)
-                else:
-                    self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[b.finesse_journalnummer] = b
-                    self.finesse_buchungen.append(b)
+                # Storno-Check
+                if not self.is_finesse_buchung_storno(b):
+                    if b.finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
+                        b.fehler_beschreibung = u'Mitgliederbuchung aus Finesse mit nicht-eindeutiger Journalnummer ({0})'.format(b.finesse_journalnummer)
+                        self.fehlerhafte_finesse_buchungen.append(b)
+                    else:
+                        self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[b.finesse_journalnummer] = b
+
+    def is_finesse_buchung_storno(self, finesse_buchung):
+        storno_partner = None
+        konten_key = finesse_buchung.konten_key
+        if konten_key in self.finesse_buchungen_by_konten_key:
+            storno_candidates = self.finesse_buchungen_by_konten_key[konten_key]
+            storno_partner = finesse_buchung.lookup_storno_partner(storno_candidates)
+            if not storno_partner:
+                storno_candidates.append(finesse_buchung)
+        else:
+            self.finesse_buchungen_by_konten_key[konten_key] = [finesse_buchung]
+
+        if storno_partner:
+            # Entferne das stornierte Buchungspaar aus Export- und Kandidatenliste.
+            del self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[storno_partner.finesse_journalnummer]
+            storno_candidates.remove(storno_partner)
+            return True
+
+        return False
 
     def exportVFBuchungenToFinesse(self, vfBuchungen, filehandle):
         writer = UnicodeCSV.UnicodeDictWriter(filehandle,

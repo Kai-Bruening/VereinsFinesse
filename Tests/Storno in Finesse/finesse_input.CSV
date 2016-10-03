@@ -1,0 +1,16 @@
+"Buchungs-Jahr";"Buchungs-Periode";"USt-VA-Periode";"Buchungs-Journal";"Journalnummer";"Belegdatum";"Konto Soll";"Bezeichnung Konto Soll";"Konto Haben";"Bezeichnung Konto Haben";"Steuerkonto";"Bezeichnung Steuerkonto";"Sammelkonto";"Bezeichnung Sammelkonto";"Betrag Soll";"Betrag Haben";"Steuerbetrag Soll";"Steuerbetrag Haben";"Betrag Sammelkonto Soll";"Betrag Sammelkonto Haben";"Buchungs-Text";"Rechnungsnummer";"Beleg 1";"Beleg 2";"USt-ID-Nummer";"Steuercode";"Kostenrechnung 1";"Kostenrechnung 2";"Kostenrechnung 3"
+
+"2016";"05";"04";"Dialog";"000001975";"01.01.2016";"000011111";"Mustermann, Max";"000009000";"Saldovorträge";"000000000";"";"000001400";"Forderungen an Mitglieder";3.338,61;3.338,61;0,00;0,00;3.338,61;0,00;"Diff. EB-Wert";"";"0";"0";"";"";"000000000";"000000000";"000000000"
+"2016";"05";"04";"Dialog";"000001979";"01.01.2016";"000011111";"Mustermann, Max";"000009000";"Saldovorträge";"000000000";"";"000001400";"Forderungen an Mitglieder";-3.338,61;-3.338,61;0,00;0,00;-3.338,61;0,00;"Diff. EB-Wert";"";"0";"0";"";"";"000000000";"000000000";"000000000"
+
+"2016";"05";"04";"Dialog";"000001980";"01.01.2016";"000011111";"Mustermann, Max";"000009000";"Saldovorträge";"000000000";"";"000001400";"Forderungen an Mitglieder";1.111,00;1.111,00;0,00;0,00;1.111,00;0,00;"Test 2";"";"0";"0";"";"";"000000000";"000000000";"000000000"
+"2016";"05";"04";"Dialog";"000001981";"01.01.2016";"000009000";"Mustermann, Max";"000011111";"Saldovorträge";"000000000";"";"000001400";"Forderungen an Mitglieder";1.111,00;1.111,00;0,00;0,00;1.111,00;0,00;"Test 2 Storno";"";"0";"0";"";"";"000000000";"000000000";"000000000"
+
+"2016";"05";"05";"Dialog";"000005685";"31.05.2016";"000011659";"Mustermann, Alice";"000005153";"Gebühr";"000001876";"Umsatzsteuer 7%";"000001400";"Forderungen an Mitglieder";69,60;65,05;0,00;4,55;69,60;0,00;"Test 3";"20161383";"4";"";"";"2";"000000322";"000000000";"000000000"
+"2016";"05";"05";"Dialog";"000005686";"31.05.2016";"000011659";"Mustermann, Alice";"000005153";"Gebühr";"000001876";"Umsatzsteuer 7%";"000001400";"Forderungen an Mitglieder";-69,60;-65,05;0,00;-4,55;-69,60;0,00;"Test 3 Storno";"20161383";"4";"";"";"2";"000000322";"000000000";"000000000"
+
+"2016";"05";"05";"Dialog";"000005687";"31.05.2016";"000011659";"Mustermann, Alice";"000005153";"Gebühr";"000001876";"Umsatzsteuer 7%";"000001400";"Forderungen an Mitglieder";69,60;65,05;0,00;4,55;69,60;0,00;"Test 3";"20161383";"4";"";"";"2";"000000322";"000000000";"000000000"
+"2016";"05";"05";"Dialog";"000005688";"31.05.2016";"000005153";"Mustermann, Alice";"000011659";"Gebühr";"000001876";"Umsatzsteuer 7%";"000001400";"Forderungen an Mitglieder";65,05;69,60;4,55;0,00;0,00;69,60;"Test 3 Storno";"20161383";"4";"";"";"2";"000000322";"000000000";"000000000"
+
+"2016";"05";"05";"Dialog";"000005689";"31.05.2016";"000011659";"Mustermann, Alice";"000005153";"Gebühr";"000001876";"Umsatzsteuer 7%";"000001400";"Forderungen an Mitglieder";69,60;65,05;0,00;4,55;69,60;0,00;"Test 4";"20161383";"4";"";"";"2";"000000322";"000000000";"000000000"
+"2016";"05";"05";"Dialog";"000005690";"31.05.2016";"000011659";"Mustermann, Alice";"000005153";"Gebühr";"000001876";"Umsatzsteuer 7%";"000001400";"Forderungen an Mitglieder";-69,00;-65,00;0,00;-4,50;-69,00;0,00;"Test 4 kein Storno";"20161383";"4";"";"";"2";"000000322";"000000000";"000000000"
