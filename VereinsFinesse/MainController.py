@@ -299,8 +299,8 @@ class MainController:
             original_vf_buchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
             # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
             # Daten müssen bleiben.
-            if not finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung):
-                finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung)   # repeated for debugging
+            if not finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung, self.konten_mit_kostenstelle):
+                finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung, self.konten_mit_kostenstelle)   # repeated for debugging
                 fehler_beschreibung = u'Importierte Finesse-Buchung weicht von originaler VF-Buchung ({0}) ab'.format(
                     original_vf_buchung.vf_nr)
             else:

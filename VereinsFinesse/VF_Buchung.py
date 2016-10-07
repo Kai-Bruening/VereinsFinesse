@@ -243,17 +243,26 @@ class VF_Buchung:
             self.fehler_beschreibung = u'Buchungen mit Steuer müssen ein Erfolgskonto benutzen'
             return None
 
-            # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
+        # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
         if self.kopierte_finesse_buchungen:
-            for iBuchung in self.kopierte_finesse_buchungen:
-                assert iBuchung.matches_konten_of_buchung(result)
-                result.betrag_soll -= iBuchung.betrag_soll
-                result.betrag_haben -= iBuchung.betrag_haben
-                if self.has_steuer:
-                    assert (result.steuer_betrag_soll == Decimal(0)) or (iBuchung.steuer_betrag_haben == Decimal(0))
-                    assert (result.steuer_betrag_haben == Decimal(0)) or (iBuchung.steuer_betrag_soll == Decimal(0))
-                    result.steuer_betrag_soll -= iBuchung.steuer_betrag_soll
-                    result.steuer_betrag_haben -= iBuchung.steuer_betrag_haben
+            for b in self.kopierte_finesse_buchungen:
+                if b.matches_konten_of_buchung(result):
+                    result.betrag_soll -= b.betrag_soll
+                    result.betrag_haben -= b.betrag_haben
+                    if self.has_steuer:
+                        assert (result.steuer_betrag_soll == Decimal(0)) or (b.steuer_betrag_haben == Decimal(0))
+                        assert (result.steuer_betrag_haben == Decimal(0)) or (b.steuer_betrag_soll == Decimal(0))
+                        result.steuer_betrag_soll -= b.steuer_betrag_soll
+                        result.steuer_betrag_haben -= b.steuer_betrag_haben
+                else:
+                    assert b.anti_matches_konten_of_buchung(result)
+                    result.betrag_soll += b.betrag_haben
+                    result.betrag_haben += b.betrag_soll
+                    if self.has_steuer:
+                        assert (result.steuer_betrag_soll == Decimal(0)) or (b.steuer_betrag_haben == Decimal(0))
+                        assert (result.steuer_betrag_haben == Decimal(0)) or (b.steuer_betrag_soll == Decimal(0))
+                        result.steuer_betrag_soll += b.steuer_betrag_haben
+                        result.steuer_betrag_haben += b.steuer_betrag_soll
 
         result.vf_nr = self.vf_nr
         result.buchungstext = self.buchungstext
@@ -297,6 +306,14 @@ class VF_Buchung:
         """
         return (self.konto_haben == other_buchung.konto_haben
             and self.konto_soll == other_buchung.konto_soll)
+
+    def anti_matches_konten_of_buchung(self, other_buchung):
+        """
+        :param other_buchung:VF_Buchung
+        :rtype: bool
+        """
+        return (self.konto_haben == other_buchung.konto_soll
+            and self.konto_soll == other_buchung.konto_haben)
 
     @classmethod
     def fieldnames_for_export_to_vf(cls):

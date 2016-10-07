@@ -172,19 +172,20 @@ class Finesse_Buchung:
                 return 1879
         return finesse_konto
 
-    def validate_for_original_vf_buchung(self, original_vf_buchung):
+    def validate_for_original_vf_buchung(self, original_vf_buchung, konten_mit_kostenstelle):
         # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
         # Daten müssen bleiben.
         if self.steuerfall != original_vf_buchung.steuerfall:
             return False
-        if original_vf_buchung.is_null:
-            # Im entarteten Fall ist die Zuordnung der Konten in VF zu Soll und Haben nicht definiert.
-            return ((self.konto_haben == original_vf_buchung.konto
-                    and self.konto_soll == original_vf_buchung.gegen_konto)
-                or (self.konto_soll == original_vf_buchung.konto
-                    and self.konto_haben == original_vf_buchung.gegen_konto))
-        return (self.konto_haben == original_vf_buchung.konto_haben
-            and self.konto_soll == original_vf_buchung.konto_soll)
+        #if original_vf_buchung.is_null:
+        # Im entarteten Fall ist die Zuordnung der Konten in VF zu Soll und Haben nicht definiert.
+        return ((self.konto_haben == original_vf_buchung.konto
+                and self.konto_soll == original_vf_buchung.gegen_konto)
+            or (self.konto_soll == original_vf_buchung.konto
+                and self.konto_haben == original_vf_buchung.gegen_konto))
+        # test_finesse_buchung = original_vf_buchung.finesse_buchung_from_vf_buchung(konten_mit_kostenstelle)
+        # return (self.konto_haben == test_finesse_buchung.konto_haben
+        #     and self.konto_soll == test_finesse_buchung.konto_soll)
 
     def create_placeholder_for_deleted_vf_buchung(self):
         # Start with an empty VF_Buchung
