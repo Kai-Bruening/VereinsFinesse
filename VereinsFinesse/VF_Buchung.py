@@ -37,7 +37,12 @@ def round_to_two_places(d):
 class VF_Buchung:
     """Räpresentiert eine Buchung im Vereinsflieger"""
 
-    def __init__(self):
+    def __init__(self, konfiguration):
+        """
+        :param konfiguration: Configuration.Konfiguration
+        """
+        assert konfiguration
+        self.konfiguration = konfiguration
         self.vf_nr = None
         self.datum = None
         self.konto = None
@@ -62,10 +67,9 @@ class VF_Buchung:
 
         self.fehler_beschreibung = None
 
-    def init_from_vf(self, value_dict, steuer_configuration):
+    def init_from_vf(self, value_dict):
         """
         :param value_dict: Dict
-        :param steuer_configuration: SteuerConfiguration
         :rtype: bool
         """
         assert self.datum is None  # the instance must be empty so far
@@ -98,7 +102,7 @@ class VF_Buchung:
         if len(steuer_konto_text) > 0:
             steuer_konto = int(steuer_konto_text)
             steuer_satz = Decimal(steuer_satz_text)
-            self.steuerfall = steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(steuer_konto, steuer_satz)
+            self.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(steuer_konto, steuer_satz)
             if not self.steuerfall:
                 self.fehler_beschreibung = u'Kombination aus Steuerkonto ({0}) und Steuersatz ({1}) unbekannt'.format(steuer_konto, steuer_satz)
                 return False
@@ -189,7 +193,7 @@ class VF_Buchung:
             konto_im_haben = self.betrag >= Decimal(0)
 
         # Initialisieren einer Finesse-Buchung mit den Werten der VF-Buchung.
-        result = Finesse_Buchung.Finesse_Buchung()
+        result = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
 
         # Beträge
         betrag_brutto = self.betrag if konto_im_haben else -self.betrag
@@ -200,25 +204,11 @@ class VF_Buchung:
             betrag_netto = betrag_brutto
 
         if konto_im_haben:
-            result.konto_haben = self.konto
-            result.konto_soll = self.gegen_konto
-            # result.betrag_haben = self.betrag
-            # result.betrag_soll = result.betrag_haben
-            # if self.has_steuer:
-            #     result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
-            #     result.betrag_soll = round_to_two_places(result.betrag_haben / (Decimal(1) + self.mwst_satz / Decimal(100)))
-            #     result.steuer_betrag_soll = result.betrag_haben - result.betrag_soll
-            #     result.steuer_betrag_haben = Decimal(0)
+            result.konto_haben = self.konfiguration.finesse_konto_from_vf_konto(self.konto)
+            result.konto_soll = self.konfiguration.finesse_konto_from_vf_konto(self.gegen_konto)
         else:
-            result.konto_soll = self.konto
-            result.konto_haben = self.gegen_konto
-            # result.betrag_soll = -self.betrag
-            # result.betrag_haben = result.betrag_soll
-            # # if self.has_steuer:
-            #     result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
-            #     result.betrag_haben = round_to_two_places(result.betrag_soll / (Decimal(1) + self.mwst_satz / Decimal(100)))
-            #     result.steuer_betrag_haben = result.betrag_soll - result.betrag_haben
-            #     result.steuer_betrag_soll = Decimal(0)
+            result.konto_soll = self.konfiguration.finesse_konto_from_vf_konto(self.konto)
+            result.konto_haben = self.konfiguration.finesse_konto_from_vf_konto(self.gegen_konto)
 
         # Der Nettobetrag geht immer aufs Erfolgskonto.
         if konten_mit_kostenstelle.enthaelt_konto(result.konto_soll):

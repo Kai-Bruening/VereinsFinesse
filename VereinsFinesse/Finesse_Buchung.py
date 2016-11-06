@@ -36,7 +36,12 @@ def round_to_two_places(d):
 class Finesse_Buchung:
     """Räpresentiert eine Buchung in Finesse"""
 
-    def __init__(self):
+    def __init__(self, konfiguration):
+        """
+        :param konfiguration: Configuration.Konfiguration
+        """
+        assert konfiguration
+        self.konfiguration = konfiguration
         self.vf_nr = None
         self.finesse_buchungs_journal = None
         self.finesse_journalnummer = None
@@ -189,7 +194,7 @@ class Finesse_Buchung:
 
     def create_placeholder_for_deleted_vf_buchung(self):
         # Start with an empty VF_Buchung
-        result = VF_Buchung.VF_Buchung()
+        result = VF_Buchung.VF_Buchung(self.konfiguration)
         result.vf_nr = self.vf_nr
         result.datum = self.datum
         result.konto = self.konto_haben
@@ -234,7 +239,7 @@ class Finesse_Buchung:
         if not self.prepare_for_vf(konten_mit_kostenstelle):
             return None
 
-        result = VF_Buchung.VF_Buchung()
+        result = VF_Buchung.VF_Buchung(self.konfiguration)
 
         # Wenn es die Freiheit gibt (keine Steuer) ordnen wir das Mitgliederkonto dem "Konto" zu, so dass es im
         # Journal des VF möglichst links steht.

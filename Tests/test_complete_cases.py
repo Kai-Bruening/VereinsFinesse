@@ -38,6 +38,10 @@ class CompleteTestCases (unittest.TestCase):
         # storniert werden, ohne dass das falsche Konto im VF angelegt werden muss.
         self.do_test_in_directory(u'Storno in Finesse')
 
+    def test_konten_zuordnungen(self):
+        # Testet die Zuordnungen von Konten zwischen Finesse und VF über Einträge in der Config-Datei.
+        self.do_test_in_directory(u'Konten-Zuordnungen')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
@@ -56,16 +60,15 @@ class CompleteTestCases (unittest.TestCase):
         controller.connectImportedVFBuchungen()
         controller.connectImportedFinesseBuchungen()
 
-        self.assertEqual(len(controller.fehlerhafte_vf_buchungen), 0, "Fehlerhafte VF Buchungen")
-        self.assertEqual(len(controller.fehlerhafte_finesse_buchungen), 0, "Fehlerhafte Finesse Buchungen")
+        if not controller.has_fehlerhafte_buchungen:
+            controller.entferne_stornierte_finesse_buchungen()
 
-        controller.entferne_stronierte_finesse_buchungen()
+            vf_export_list = controller.finesseBuchungenForExportToVF()
+            finesse_export_list = controller.vfBuchungenForExportToFinesse()
 
-        vf_export_list = controller.finesseBuchungenForExportToVF()
-        finesse_export_list = controller.vfBuchungenForExportToFinesse()
-
-        self.assertEqual(len(controller.fehlerhafte_vf_buchungen), 0, "Fehlerhafte VF Buchungen")
-        self.assertEqual(len(controller.fehlerhafte_finesse_buchungen), 0, "Fehlerhafte Finesse Buchungen")
+        if controller.has_fehlerhafte_buchungen:
+            controller.report_errors()
+            self.fail("Fehlerhafte Buchungen in der Eingabe")
 
         # Export for VF
         expected_path = os.path.join(test_dir, u'vf_expected.csv')
@@ -77,11 +80,11 @@ class CompleteTestCases (unittest.TestCase):
             matches = False
             if os.path.exists(expected_path):
                 matches = filecmp.cmp(result_path , expected_path)
-            self.assertTrue(matches)
+            self.assertTrue(matches, "VF results do not match expectation")
             if matches: # else leave it available for inspection
                 os.remove(result_path)
         else:
-            self.assertFalse(os.path.exists(expected_path))
+            self.assertFalse(os.path.exists(expected_path), "Expected vf results, but non were produced")
 
         # Export for Finesse
         expected_path = os.path.join(test_dir, u'finesse_expected.csv')
@@ -93,11 +96,11 @@ class CompleteTestCases (unittest.TestCase):
             matches = False
             if os.path.exists(expected_path):
                 matches = filecmp.cmp(result_path, expected_path)
-            self.assertTrue(matches)
+            self.assertTrue(matches, "Finesse results do not match expectation")
             if matches:  # else leave it available for inspection
                 os.remove(result_path)
         else:
-            self.assertFalse(os.path.exists(expected_path))
+            self.assertFalse(os.path.exists(expected_path), "Expected finesse results, but non were produced")
 
 if __name__ == '__main__':
     unittest.main()

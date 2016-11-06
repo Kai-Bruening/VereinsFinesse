@@ -32,6 +32,10 @@ class MainController:
         self.fehlerhafte_vf_buchungen = []
         self.fehlerhafte_finesse_buchungen = []
 
+    @property
+    def has_fehlerhafte_buchungen(self):
+        return len(self.fehlerhafte_vf_buchungen) > 0 or len(self.fehlerhafte_finesse_buchungen) > 0
+
     def run(self):
         # argparse exits on error after printing a message - no need to modify this.
         self.parse_args()
@@ -51,7 +55,7 @@ class MainController:
             self.connectImportedFinesseBuchungen()
             self.raise_if_pending_errors()
 
-            self.entferne_stronierte_finesse_buchungen()
+            self.entferne_stornierte_finesse_buchungen()
 
             finesse_export_list = self.finesseBuchungenForExportToVF()
             vf_exportList = self.vfBuchungenForExportToFinesse()
@@ -102,11 +106,15 @@ class MainController:
             print u"Fehler beim Lesen der Konfiguration von „{0}“:".format(stream.name), error
             raise StopRun()
 
+        self.konfiguration = Configuration.Konfiguration(self.config)
+
         self.steuer_configuration = Configuration.SteuerConfiguration(self.config)
 
         self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(u'ausgenommene_konten_vf_nach_finesse')
         self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
         self.konten_mit_kostenstelle = self.read_optional_list_from_config(u'konten_mit_kostenstelle')
+
+        self.konten_nummern_vf_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_finesse')
 
     def read_optional_list_from_config(self, key):
         # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
@@ -115,6 +123,14 @@ class MainController:
         if key in self.config:
             list = self.config[key]
         return Configuration.Kontenbereiche(list)
+
+    def read_optional_dictionary_from_config(self, key):
+        # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
+        # some empty element was supposed to be an array).
+        dict = None
+        if key in self.config:
+            dict = self.config[key]
+        return dict
 
     def is_buchung_exported_to_finesse(self, buchung):
         return (not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
@@ -153,8 +169,8 @@ class MainController:
                 print u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>'])
                 raise StopRun()
 
-            b = VF_Buchung.VF_Buchung()
-            if not b.init_from_vf(row_dict, self.steuer_configuration):
+            b = VF_Buchung.VF_Buchung(self.konfiguration)
+            if not b.init_from_vf(row_dict):
                 self.fehlerhafte_vf_buchungen.append(b)
                 continue
 
@@ -211,7 +227,7 @@ class MainController:
                 print u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>'])
                 raise StopRun()
 
-            b = Finesse_Buchung.Finesse_Buchung()
+            b = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
             if not b.init_from_finesse(row_dict, self.steuer_configuration, self.konten_finesse_nach_vf):
                 self.fehlerhafte_finesse_buchungen.append(b)
                 continue
@@ -330,7 +346,7 @@ class MainController:
         self.vf_buchungenByNr[vf_nr] = vf_buchung
         return vf_buchung
 
-    def entferne_stronierte_finesse_buchungen(self):
+    def entferne_stornierte_finesse_buchungen(self):
         for key, storno_group in self.finesse_buchungen_by_konten_key.items():
             index = 0
             while index < len(storno_group):

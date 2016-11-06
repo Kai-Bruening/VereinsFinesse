@@ -8,6 +8,43 @@ def enum(**named_values):
 
 steuerart = enum(Keine=u'keine', Vorsteuer=u'vorsteuer', Umsatzsteuer=u'umsatzsteuer')
 
+class Konfiguration:
+
+    def __init__(self, config_dict):
+        self.config_dict = config_dict
+
+        self.steuer_configuration = SteuerConfiguration(config_dict)
+
+        self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(
+            u'ausgenommene_konten_vf_nach_finesse')
+        self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
+        self.konten_mit_kostenstelle = self.read_optional_list_from_config(u'konten_mit_kostenstelle')
+
+        self.konten_nummern_vf_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_finesse')
+
+    def read_optional_list_from_config(self, key):
+        # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
+        # some empty element was supposed to be an array).
+        list = None
+        if key in self.config_dict:
+            list = self.config_dict[key]
+        return Kontenbereiche(list)
+
+    def read_optional_dictionary_from_config(self, key):
+        # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
+        # some empty element was supposed to be an array).
+        dict = {}
+        if key in self.config_dict:
+            dict = self.config_dict[key]
+        return dict
+
+
+    def finesse_konto_from_vf_konto(self, vf_konto):
+        if vf_konto in self.konten_nummern_vf_nach_finesse:
+            return self.konten_nummern_vf_nach_finesse[vf_konto]
+        return vf_konto
+
+
 class Steuerfall(yaml.YAMLObject):
     yaml_tag = u'!Steuerfall'
 
