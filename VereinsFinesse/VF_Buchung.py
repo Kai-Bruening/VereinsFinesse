@@ -178,7 +178,7 @@ class VF_Buchung:
             return True
         return False
 
-    def finesse_buchung_from_vf_buchung(self, konten_mit_kostenstelle):
+    def finesse_buchung_from_vf_buchung(self):
         """
         :rtype: Finesse_Buchung
         """
@@ -211,15 +211,15 @@ class VF_Buchung:
             result.konto_haben = self.konfiguration.finesse_konto_from_vf_konto(self.gegen_konto)
 
         # Der Nettobetrag geht immer aufs Erfolgskonto.
-        if konten_mit_kostenstelle.enthaelt_konto(result.konto_soll):
-            if konten_mit_kostenstelle.enthaelt_konto(result.konto_haben):
+        if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(result.konto_soll):
+            if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(result.konto_haben):
                 self.fehler_beschreibung = u'Buchung mit Steuer von Erfolgskonto auf Erfolgskonto ist nicht sinnvoll'
                 return None
             result.betrag_haben = betrag_brutto
             result.steuer_betrag_haben = Decimal(0)
             result.betrag_soll = betrag_netto
             result.steuer_betrag_soll = betrag_brutto - betrag_netto
-        elif konten_mit_kostenstelle.enthaelt_konto(result.konto_haben):
+        elif self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(result.konto_haben):
             result.betrag_soll = betrag_brutto
             result.steuer_betrag_soll = Decimal(0)
             result.betrag_haben = betrag_netto

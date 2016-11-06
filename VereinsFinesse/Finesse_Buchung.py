@@ -75,7 +75,7 @@ class Finesse_Buchung:
 
         self.fehler_beschreibung = None
 
-    def init_from_finesse(self, value_dict, steuer_configuration, konten_finesse_nach_vf):
+    def init_from_finesse(self, value_dict):
         assert self.datum is None  # the instance must be empty so far
 
         self.source_values = value_dict
@@ -107,7 +107,7 @@ class Finesse_Buchung:
         steuercode_text = value_dict[u'Steuercode']
         if len(steuercode_text) > 0:
             steuercode = int(steuercode_text)
-            self.steuerfall = steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
+            self.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
             if not self.steuerfall:
                 self.fehler_beschreibung = u'Unbekannter Steuercode ({0})'.format(steuercode)
                 return False
@@ -147,7 +147,7 @@ class Finesse_Buchung:
         else:
             # Wenn es die Freiheit gibt (keine Steuer) ordnen wir das Mitgliederkonto dem VF-'Konto' zu, so dass
             # es im Journal des VF möglichst links steht.
-            self.vf_konto_ist_konto_haben = konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
+            self.vf_konto_ist_konto_haben = self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
 
         return True
 
@@ -177,7 +177,7 @@ class Finesse_Buchung:
                 return 1879
         return finesse_konto
 
-    def validate_for_original_vf_buchung(self, original_vf_buchung, konten_mit_kostenstelle):
+    def validate_for_original_vf_buchung(self, original_vf_buchung):
         # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
         # Daten müssen bleiben.
         if self.steuerfall != original_vf_buchung.steuerfall:
@@ -188,7 +188,7 @@ class Finesse_Buchung:
                 and self.konto_soll == original_vf_buchung.gegen_konto)
             or (self.konto_soll == original_vf_buchung.konto
                 and self.konto_haben == original_vf_buchung.gegen_konto))
-        # test_finesse_buchung = original_vf_buchung.finesse_buchung_from_vf_buchung(konten_mit_kostenstelle)
+        # test_finesse_buchung = original_vf_buchung.finesse_buchung_from_vf_buchung()
         # return (self.konto_haben == test_finesse_buchung.konto_haben
         #     and self.konto_soll == test_finesse_buchung.konto_soll)
 
@@ -209,7 +209,7 @@ class Finesse_Buchung:
         # result.vf_belegnummer = None
         return result
 
-    def prepare_for_vf(self, konten_mit_kostenstelle):
+    def prepare_for_vf(self):
         """
         :rtype: bool
         """
@@ -220,12 +220,12 @@ class Finesse_Buchung:
         if not self.kostenstelle:
             return True
 
-        if konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
-            if konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+        if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
+            if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
                 self.fehler_beschreibung = u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
                 return False
             self.konto_soll_kostenstelle = self.kostenstelle
-        elif konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+        elif self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
             self.konto_haben_kostenstelle = self.kostenstelle
         else:
             self.fehler_beschreibung = u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
@@ -233,17 +233,17 @@ class Finesse_Buchung:
 
         return True
 
-    def vf_buchung_for_export(self, konten_finesse_nach_vf, konten_mit_kostenstelle, steuer_configuration):
+    def vf_buchung_for_export(self):
         assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
 
-        if not self.prepare_for_vf(konten_mit_kostenstelle):
+        if not self.prepare_for_vf():
             return None
 
         result = VF_Buchung.VF_Buchung(self.konfiguration)
 
         # Wenn es die Freiheit gibt (keine Steuer) ordnen wir das Mitgliederkonto dem "Konto" zu, so dass es im
         # Journal des VF möglichst links steht.
-        konto_im_haben = konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
+        konto_im_haben = self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
         if self.has_steuer and self.steuer_betrag_haben != Decimal(0):
             konto_im_haben = False
 
@@ -266,9 +266,9 @@ class Finesse_Buchung:
 
         if self.steuerfall:
             if self.steuerfall.art == Configuration.steuerart.Vorsteuer:
-                result.steuer_konto = steuer_configuration.vf_vorsteuer_konto
+                result.steuer_konto = self.konfiguration.steuer_configuration.vf_vorsteuer_konto
             elif self.steuerfall.art == Configuration.steuerart.Umsatzsteuer:
-                result.steuer_konto = steuer_configuration.vf_umsatzsteuer_konto
+                result.steuer_konto = self.konfiguration.steuer_configuration.vf_umsatzsteuer_konto
 
         result.vf_nr = self.vf_nr
         result.datum = self.datum

@@ -101,44 +101,19 @@ class MainController:
 
     def read_config(self, stream):
         try:
-            self.config = yaml.load(stream)
+            config_dict = yaml.load(stream)
+            self.konfiguration = Configuration.Konfiguration(config_dict)
         except yaml.parser.ParserError as error:
             print u"Fehler beim Lesen der Konfiguration von „{0}“:".format(stream.name), error
             raise StopRun()
 
-        self.konfiguration = Configuration.Konfiguration(self.config)
-
-        self.steuer_configuration = Configuration.SteuerConfiguration(self.config)
-
-        self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(u'ausgenommene_konten_vf_nach_finesse')
-        self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
-        self.konten_mit_kostenstelle = self.read_optional_list_from_config(u'konten_mit_kostenstelle')
-
-        self.konten_nummern_vf_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_finesse')
-
-    def read_optional_list_from_config(self, key):
-        # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
-        # some empty element was supposed to be an array).
-        list = None
-        if key in self.config:
-            list = self.config[key]
-        return Configuration.Kontenbereiche(list)
-
-    def read_optional_dictionary_from_config(self, key):
-        # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
-        # some empty element was supposed to be an array).
-        dict = None
-        if key in self.config:
-            dict = self.config[key]
-        return dict
-
     def is_buchung_exported_to_finesse(self, buchung):
-        return (not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
-                and not self.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.gegen_konto))
+        return (not self.konfiguration.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
+                and not self.konfiguration.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.gegen_konto))
 
     def is_buchung_exported_to_vf(self, finesse_buchung):
-        return (self.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_haben)
-                or self.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_soll))
+        return (self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_haben)
+                or self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_soll))
 
     def vf_export_path(self):
         vf_path = self.parsed_args.vf_export
@@ -228,7 +203,7 @@ class MainController:
                 raise StopRun()
 
             b = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
-            if not b.init_from_finesse(row_dict, self.steuer_configuration, self.konten_finesse_nach_vf):
+            if not b.init_from_finesse(row_dict):
                 self.fehlerhafte_finesse_buchungen.append(b)
                 continue
 
@@ -302,7 +277,7 @@ class MainController:
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
             if not finesse_buchung.kopierte_vf_buchung:
-                vf_buchung = finesse_buchung.vf_buchung_for_export(self.konten_finesse_nach_vf, self.konten_mit_kostenstelle, self.steuer_configuration)
+                vf_buchung = finesse_buchung.vf_buchung_for_export()
                 if vf_buchung:
                     result.append(vf_buchung)
                 else:
@@ -315,8 +290,8 @@ class MainController:
             original_vf_buchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
             # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
             # Daten müssen bleiben.
-            if not finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung, self.konten_mit_kostenstelle):
-                finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung, self.konten_mit_kostenstelle)   # repeated for debugging
+            if not finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung):
+                finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung)   # repeated for debugging
                 fehler_beschreibung = u'Importierte Finesse-Buchung weicht von originaler VF-Buchung ({0}) ab'.format(
                     original_vf_buchung.vf_nr)
             else:
@@ -376,7 +351,7 @@ class MainController:
         """
         result = []
         for vf_buchung in self.vf_buchungenForExportToFinesse:
-            finesseBuchung = vf_buchung.finesse_buchung_from_vf_buchung(self.konten_mit_kostenstelle)
+            finesseBuchung = vf_buchung.finesse_buchung_from_vf_buchung()
             if finesseBuchung:
                 # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
                 if finesseBuchung.betrag_soll != Decimal(0) and finesseBuchung.betrag_haben != Decimal(0):
