@@ -1,1 +1,5 @@
 "Buchungs-Jahr";"Buchungs-Periode";"USt-VA-Periode";"Buchungs-Journal";"Journalnummer";"Belegdatum";"Konto Soll";"Bezeichnung Konto Soll";"Konto Haben";"Bezeichnung Konto Haben";"Steuerkonto";"Bezeichnung Steuerkonto";"Sammelkonto";"Bezeichnung Sammelkonto";"Betrag Soll";"Betrag Haben";"Steuerbetrag Soll";"Steuerbetrag Haben";"Betrag Sammelkonto Soll";"Betrag Sammelkonto Haben";"Buchungs-Text";"Rechnungsnummer";"Beleg 1";"Beleg 2";"USt-ID-Nummer";"Steuercode";"Kostenrechnung 1";"Kostenrechnung 2";"Kostenrechnung 3"
+
+"2016";"02";"02";"Dialog";"000003711";"26.02.2016";"000001200";"Sparkasse Leverkusen 102002136";"000011947";"Müller, Uwe";"000000000";"";"000001400";"Forderungen an Mitglieder";95,70;95,70;0,00;0,00;0,00;95,70;"Kontoausgleich schon übertragen";"";"201602";"3056611";"";"";"000000000";"000000000";"000000000"
+
+"2016";"08";"08";"Dialog";"000006397";"31.08.2016";"000001569";"Aufzuteilende VSt 19%";"000011552";"Mustermann, Klara";"000000000";"";"000001400";"Forderungen an Mitglieder";16,41;16,41;0,00;0,00;0,00;16,41;"Lampe Terasse";"ER0111";"1621673";"0";"";"";"000000904";"000000000";"000000000"

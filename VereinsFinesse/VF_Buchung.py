@@ -144,6 +144,14 @@ class VF_Buchung:
         return self.betrag == Decimal(0)
 
     @property
+    def konto_for_finesse(self):
+        return self.konfiguration.finesse_konto_from_vf_konto(self.konto)
+
+    @property
+    def gegen_konto_for_finesse(self):
+        return self.konfiguration.finesse_konto_from_vf_konto(self.gegen_konto)
+
+    @property
     def konto_haben(self):
         assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
         return self.konto if self.betrag > Decimal(0) else self.gegen_konto
@@ -187,8 +195,8 @@ class VF_Buchung:
         # Kontozuordnung bestimmen.
         if self.kopierte_finesse_buchungen:
             eine_finesse_buchung = self.kopierte_finesse_buchungen[0]
-            konto_im_haben = self.konto == eine_finesse_buchung.konto_haben
-            assert konto_im_haben or self.konto == eine_finesse_buchung.konto_soll
+            konto_im_haben = self.konto_for_finesse == eine_finesse_buchung.konto_haben
+            assert konto_im_haben or self.konto_for_finesse == eine_finesse_buchung.konto_soll
         else:
             konto_im_haben = self.betrag >= Decimal(0)
 

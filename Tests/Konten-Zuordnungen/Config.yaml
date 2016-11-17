@@ -38,26 +38,44 @@ konten_mit_kostenstelle:
     start:          2000
     ende:           8910
 
+# Konten, die in Finesse Buchungen mit Kostenstelle auftauchen können, im VF aber ohne Kostenstelle
+# geführt werden.
+vf_konten_die_kostenstelle_ignorieren:
+  # Buchungen aus Finesse mit einem Steuerkonto als explizitem Konto können eine Kostenstelle enthalten.
+  # Das wollen wir im VF nicht abbilden (der Stand der Steuerkonten in VF ist eh bedeutungslos).
+  - !Kontenbereich
+    start:          1599
+    ende:           1599
+  - !Kontenbereich
+    start:          1879
+    ende:           1879
+
 # Einige Kontennummern unterscheiden sich zwischen Finesse und VF.
 konten_nummern_vf_nach_finesse:
+  # (hoffentlich) vorübergehender Fix für das Dorian Immler Kontenproblem
   99900: 11947
 
 konten_nummern_finesse_nach_vf:
+  # Die folgenden Zuordnungen werden aktiv, wenn ein Buchungssatz ein Steuerkonto als Soll- oder
+  # Habenkonto enthält und in den VF übertragen wird. Ein seltener aber möglicher Fall.
+
+  # Alle Vorsteuerkonten in Finesse werden auf das eine VF-Konto für Vorsteuer gemappt.
   1576: 1599
   1579: 1599
   1569: 1599
   1566: 1599
   1570: 1599
 
+  # Alle Umsatzsteuerkonten in Finesse werden auf das eine VF-Konto für Umsatzsteuer gemappt.
   1775: 1879
   1870: 1879
   1876: 1879
  
-# Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
-# Steuercode für Finess zu bestimmen.
-
 vf_vorsteuer_konto:     1599
 vf_umsatzsteuer_konto:  1879
+
+# Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
+# Steuercode für Finess zu bestimmen.
 
 steuerfaelle:
   - !Steuerfall
