@@ -62,7 +62,8 @@ class VF_Buchung:
 
         # Die Finess-Buchung, von der dieser bei einem früheren Abgleich importiert wurde.
         self.original_finesse_buchung = None
-        # Finesse-Buchungen, die von dieser bei früheren Abgleichen kopiert wurden (mehrere bei Stornos im VF).
+
+        # Finesse-Buchungen, die von dieser bei früheren Abgleichen kopiert wurden (mehrere bei Änderungen im VF).
         self.kopierte_finesse_buchungen_by_kompatible_buchungen_key = {}
 
         self.fehler_beschreibung = None
@@ -201,6 +202,13 @@ class VF_Buchung:
         return konto1, konto2, self.kostenstelle, steuercode
 
     def connect_kopierte_finesse_buchung(self, finesse_buchung):
+        # Finesse scheint beim Import eine Kostenstelle hinzuzufügen, wenn Splitbuchungen importiert werden. Das muss
+        # noch näher untersucht werden, aber zur Zeit ignorieren wir die Kostenstelle in der Finesse-Buchung, wenn die
+        # VF-Buchung keine hat.
+        if not self.kostenstelle:
+            finesse_buchung.kostenstelle = None
+
+        # Wir bilden Gruppen von kompatiblen Finesse-Buchungen, die untereinander konsolidiert werden können.
         kompatible_buchungen_key = finesse_buchung.kompatible_buchungen_key
         if kompatible_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
             kompatible_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key ]
