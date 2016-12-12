@@ -152,30 +152,24 @@ class Finesse_Buchung:
         return True
 
     @property
+    def konto_haben_for_vf(self):
+        return self.konfiguration.vf_konto_from_finesse_konto(self.konto_haben)
+
+    @property
+    def konto_soll_for_vf(self):
+        return self.konfiguration.vf_konto_from_finesse_konto(self.konto_soll)
+
+    @property
     def vf_konto(self):
-        return self.vf_konto_from_finesse_konto(self.konto_haben if self.vf_konto_ist_konto_haben else self.konto_soll)
+        return self.konto_haben_for_vf if self.vf_konto_ist_konto_haben else self.konto_soll_for_vf
 
     @property
     def vf_gegen_konto(self):
-        return self.vf_konto_from_finesse_konto(self.konto_soll if self.vf_konto_ist_konto_haben else self.konto_haben)
+        return self.konto_soll_for_vf if self.vf_konto_ist_konto_haben else self.konto_haben_for_vf
 
     @property
     def vf_betrag(self):
         return self.betrag_haben if self.vf_konto_ist_konto_haben else -self.betrag_soll
-
-    def vf_konto_from_finesse_konto(self, finesse_konto):
-        # TODO: use config for this.
-        if (finesse_konto == 1576 or
-                    finesse_konto == 1579 or
-                    finesse_konto == 1569 or
-                    finesse_konto == 1566 or
-                    finesse_konto == 1570):
-            return 1599
-        if (finesse_konto == 1876 or
-                        finesse_konto == 1870 or
-                        finesse_konto == 1775):
-                return 1879
-        return finesse_konto
 
     def validate_for_original_vf_buchung(self, original_vf_buchung):
         # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
@@ -228,8 +222,8 @@ class Finesse_Buchung:
             self.konto_soll_kostenstelle = self.kostenstelle
         elif self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
             self.konto_haben_kostenstelle = self.kostenstelle
-        elif (self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.vf_konto_from_finesse_konto(self.konto_soll))
-            or self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.vf_konto_from_finesse_konto(self.konto_haben))):
+        elif (self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll_for_vf)
+            or self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben_for_vf)):
             pass
         else:
             self.fehler_beschreibung = u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
@@ -252,17 +246,17 @@ class Finesse_Buchung:
             konto_im_haben = False
 
         if konto_im_haben:
-            result.konto = self.konto_haben
+            result.konto = self.konto_haben_for_vf
             result.konto_kostenstelle = self.konto_haben_kostenstelle
-            result.gegen_konto = self.konto_soll
+            result.gegen_konto = self.konto_soll_for_vf
             result.gegen_konto_kostenstelle = self.konto_soll_kostenstelle
             result.betrag = self.betrag_haben
             #if self.has_steuer:
             #    result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
         else:
-            result.konto = self.konto_soll
+            result.konto = self.konto_soll_for_vf
             result.konto_kostenstelle = self.konto_soll_kostenstelle
-            result.gegen_konto = self.konto_haben
+            result.gegen_konto = self.konto_haben_for_vf
             result.gegen_konto_kostenstelle = self.konto_haben_kostenstelle
             result.betrag = -self.betrag_soll
             #if self.has_steuer:
