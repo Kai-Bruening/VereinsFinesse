@@ -42,6 +42,11 @@ class CompleteTestCases (unittest.TestCase):
         # Testet die Zuordnungen von Konten zwischen Finesse und VF über Einträge in der Config-Datei.
         self.do_test_in_directory(u'Konten-Zuordnungen')
 
+    def test_inkompatible_aenderungen_im_vf(self):
+        # Buchungen können nachträglich im VF praktisch beliebig geändert werden, inklusive Änderung der
+        # Konten. In solchen Fällen wird die alte Buchung in Finesse storniert und eine neue angelegt.
+        self.do_test_in_directory(u'Inkompatible Aenderungen im VF')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

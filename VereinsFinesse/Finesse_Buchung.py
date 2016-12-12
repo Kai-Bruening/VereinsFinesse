@@ -193,6 +193,7 @@ class Finesse_Buchung:
         #     and self.konto_soll == test_finesse_buchung.konto_soll)
 
     def create_placeholder_for_deleted_vf_buchung(self):
+        self.prepare_for_vf()
         # Start with an empty VF_Buchung
         result = VF_Buchung.VF_Buchung(self.konfiguration)
         result.vf_nr = self.vf_nr
@@ -373,6 +374,13 @@ class Finesse_Buchung:
             konto2 = self.konto_haben
         return konto1, konto2, self.kostenstelle
 
+    @property
+    def kompatible_buchungen_key(self):
+        steuercode = None
+        if self.steuerfall:
+            steuercode = self.steuerfall.code
+        return self.konten_key + (steuercode , )
+
     def lookup_storno_partner(self, storno_candidates):
         """
         storno_candidates ist eine liste von Buchungen mit gleichem konten_key wie diese Buchung.
@@ -395,3 +403,22 @@ class Finesse_Buchung:
                             candidate.steuer_betrag_haben == self.steuer_betrag_soll):
                     return candidate
         return None
+
+    def subtract_betraege_von(self, andere_buchung):
+        if andere_buchung.matches_konten_of_buchung(self):
+            self.betrag_soll -= andere_buchung.betrag_soll
+            self.betrag_haben -= andere_buchung.betrag_haben
+            if self.has_steuer:
+                assert (self.steuer_betrag_soll == Decimal(0)) or (andere_buchung.steuer_betrag_haben == Decimal(0))
+                assert (self.steuer_betrag_haben == Decimal(0)) or (andere_buchung.steuer_betrag_soll == Decimal(0))
+                self.steuer_betrag_soll -= andere_buchung.steuer_betrag_soll
+                self.steuer_betrag_haben -= andere_buchung.steuer_betrag_haben
+        else:
+            assert andere_buchung.anti_matches_konten_of_buchung(self)
+            self.betrag_soll += andere_buchung.betrag_haben
+            self.betrag_haben += andere_buchung.betrag_soll
+            if self.has_steuer:
+                assert (self.steuer_betrag_soll == Decimal(0)) or (andere_buchung.steuer_betrag_haben == Decimal(0))
+                assert (self.steuer_betrag_haben == Decimal(0)) or (andere_buchung.steuer_betrag_soll == Decimal(0))
+                self.steuer_betrag_soll += andere_buchung.steuer_betrag_haben
+                self.steuer_betrag_haben += andere_buchung.steuer_betrag_soll

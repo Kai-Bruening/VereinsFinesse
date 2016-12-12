@@ -286,27 +286,8 @@ class MainController:
 
     def connectImportedFinesseBuchungen(self):
         for finesse_buchung in self.finesse_buchungen_originally_imported_from_vf:
-            fehler_beschreibung = None
             original_vf_buchung = self.ensure_original_vf_buchung_for_imported_finesse_buchung(finesse_buchung)
-            # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
-            # Daten müssen bleiben.
-            if not finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung):
-                finesse_buchung.validate_for_original_vf_buchung(original_vf_buchung)   # repeated for debugging
-                fehler_beschreibung = u'Importierte Finesse-Buchung weicht von originaler VF-Buchung ({0}) ab'.format(
-                    original_vf_buchung.vf_nr)
-            else:
-                # Buchungen im VF können geändert werden, deshalb kann es mehrere Buchung in Finesse für
-                # eine einzige VF-Buchung geben.
-                finesse_buchung.original_vf_buchung = original_vf_buchung
-                if original_vf_buchung.kopierte_finesse_buchungen:
-                    original_vf_buchung.kopierte_finesse_buchungen.append(finesse_buchung)
-                    original_vf_buchung.kopierte_finesse_buchungen.sort(key = lambda x: x.finesse_journalnummer)
-                else:
-                    original_vf_buchung.kopierte_finesse_buchungen = [finesse_buchung]
-
-            if fehler_beschreibung:
-                finesse_buchung.fehler_beschreibung = fehler_beschreibung
-                self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
+            original_vf_buchung.connect_kopierte_finesse_buchung(finesse_buchung)
 
     def ensure_original_vf_buchung_for_imported_finesse_buchung(self, finesse_buchung):
         vf_nr = finesse_buchung.vf_nr
@@ -351,11 +332,13 @@ class MainController:
         """
         result = []
         for vf_buchung in self.vf_buchungenForExportToFinesse:
-            finesseBuchung = vf_buchung.finesse_buchung_from_vf_buchung()
-            if finesseBuchung:
+            finesse_buchungen = vf_buchung.finesse_buchungen_from_vf_buchung()
+            if finesse_buchungen != None:
+                result += finesse_buchungen
+
                 # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
-                if finesseBuchung.betrag_soll != Decimal(0) and finesseBuchung.betrag_haben != Decimal(0):
-                    result.append(finesseBuchung)
+                #if finesseBuchung.betrag_soll != Decimal(0) and finesseBuchung.betrag_haben != Decimal(0):
+                 #   result.append(finesseBuchung)
             else:
                 self.fehlerhafte_vf_buchungen.append(vf_buchung)
 

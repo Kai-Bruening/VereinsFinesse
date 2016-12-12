@@ -1,0 +1,3 @@
+Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr
+18.09.2016;Storno wegen inkompatibler Änderung im VF: Erstattung vom 19.9.16;-4.40;8;-0.29;11935;5575;218;;;5318498
+18.09.2016;Erstattung vom 19.9.16;4.40;2;0.29;11935;5575;218;;80;5318498

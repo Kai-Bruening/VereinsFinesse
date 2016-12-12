@@ -63,7 +63,7 @@ class VF_Buchung:
         # Die Finess-Buchung, von der dieser bei einem früheren Abgleich importiert wurde.
         self.original_finesse_buchung = None
         # Finesse-Buchungen, die von dieser bei früheren Abgleichen kopiert wurden (mehrere bei Stornos im VF).
-        self.kopierte_finesse_buchungen = None
+        self.kopierte_finesse_buchungen_by_kompatible_buchungen_key = {}
 
         self.fehler_beschreibung = None
 
@@ -186,15 +186,70 @@ class VF_Buchung:
             return True
         return False
 
-    def finesse_buchung_from_vf_buchung(self):
+    @property
+    def finesse_kompatible_buchungen_key(self):
+        konto1 = self.konto_for_finesse
+        konto2 = self.gegen_konto_for_finesse
+        # Vertauschte Konten müssen den gleichen Schlüssel ergeben.
+        if konto1 > konto2:
+            temp = konto1
+            konto1 = konto2
+            konto2 = temp
+        steuercode = None
+        if self.steuerfall:
+            steuercode = self.steuerfall.code
+        return konto1, konto2, self.kostenstelle, steuercode
+
+    def connect_kopierte_finesse_buchung(self, finesse_buchung):
+        kompatible_buchungen_key = finesse_buchung.kompatible_buchungen_key
+        if kompatible_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
+            kompatible_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key ]
+            kompatible_buchungen.append(finesse_buchung)
+            kompatible_buchungen.sort(key=lambda x: x.finesse_journalnummer)
+        else:
+            self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key] = [finesse_buchung]
+
+        finesse_buchung.original_vf_buchung = self
+
+    def finesse_buchungen_from_vf_buchung(self):
         """
-        :rtype: Finesse_Buchung
+        :rtype: list
         """
         assert self.vf_belegart != vf_belegart_for_import_from_finesse
 
+        kompatible_finesse_buchungen_key = self.finesse_kompatible_buchungen_key
+
+        result = []
+
+        # Zunächst werden evt. nicht mehr kompatible Buchungen in Finesse storniert.
+        for key, finesse_buchungen in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key.items():
+            if key != kompatible_finesse_buchungen_key:
+                finesse_buchung = self.finesse_buchung_from_finesse_buchungen(finesse_buchungen)
+                # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
+                if finesse_buchung.betrag_soll != Decimal(0) and finesse_buchung.betrag_haben != Decimal(0):
+                    finesse_buchung.buchungstext = u'Storno wegen inkompatibler Änderung im VF: {0}'.format(finesse_buchung.buchungstext)
+                    result.append(finesse_buchung)
+
+        # Jetzt eine Finesse-Buchung für diese VF-Buchung erzeugen, korrigiert um evt. bereits übertragen kompatible
+        # frühere Versionen der Buchung.
+        kompatible_finesse_buchungen = None
+        if kompatible_finesse_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
+            kompatible_finesse_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_finesse_buchungen_key]
+
+        finesse_buchung = self.kompatible_finesse_buchung_from_vf_buchung(kompatible_finesse_buchungen)
+        if not finesse_buchung:
+            return None
+
+        # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
+        if finesse_buchung.betrag_soll != Decimal(0) and finesse_buchung.betrag_haben != Decimal(0):
+            result.append(finesse_buchung)
+
+        return result
+
+    def kompatible_finesse_buchung_from_vf_buchung(self, kompatible_finesse_buchungen):
         # Kontozuordnung bestimmen.
-        if self.kopierte_finesse_buchungen:
-            eine_finesse_buchung = self.kopierte_finesse_buchungen[0]
+        if kompatible_finesse_buchungen:
+            eine_finesse_buchung = kompatible_finesse_buchungen[0]
             konto_im_haben = self.konto_for_finesse == eine_finesse_buchung.konto_haben
             assert konto_im_haben or self.konto_for_finesse == eine_finesse_buchung.konto_soll
         else:
@@ -242,25 +297,9 @@ class VF_Buchung:
             return None
 
         # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
-        if self.kopierte_finesse_buchungen:
-            for b in self.kopierte_finesse_buchungen:
-                if b.matches_konten_of_buchung(result):
-                    result.betrag_soll -= b.betrag_soll
-                    result.betrag_haben -= b.betrag_haben
-                    if self.has_steuer:
-                        assert (result.steuer_betrag_soll == Decimal(0)) or (b.steuer_betrag_haben == Decimal(0))
-                        assert (result.steuer_betrag_haben == Decimal(0)) or (b.steuer_betrag_soll == Decimal(0))
-                        result.steuer_betrag_soll -= b.steuer_betrag_soll
-                        result.steuer_betrag_haben -= b.steuer_betrag_haben
-                else:
-                    assert b.anti_matches_konten_of_buchung(result)
-                    result.betrag_soll += b.betrag_haben
-                    result.betrag_haben += b.betrag_soll
-                    if self.has_steuer:
-                        assert (result.steuer_betrag_soll == Decimal(0)) or (b.steuer_betrag_haben == Decimal(0))
-                        assert (result.steuer_betrag_haben == Decimal(0)) or (b.steuer_betrag_soll == Decimal(0))
-                        result.steuer_betrag_soll += b.steuer_betrag_haben
-                        result.steuer_betrag_haben += b.steuer_betrag_soll
+        if kompatible_finesse_buchungen:
+            for b in kompatible_finesse_buchungen:
+                result.subtract_betraege_von(b)
 
         result.vf_nr = self.vf_nr
         result.buchungstext = self.buchungstext
@@ -273,6 +312,33 @@ class VF_Buchung:
         result.rechnungsnummer = self.abrechnungsnr
         result.vf_belegnummer = self.vf_belegnummer
         result.kostenstelle = self.kostenstelle
+
+        return result
+
+    def finesse_buchung_from_finesse_buchungen(self, finesse_buchungen):
+        eine_finesse_buchung = finesse_buchungen[0]
+
+        # Initialisieren einer Finesse-Buchung mit den Werten der ersten Finesse-Buchung ohne Beträge.
+        result = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
+        result.vf_nr = eine_finesse_buchung.vf_nr
+        result.datum = eine_finesse_buchung.datum
+        result.buchungstext = eine_finesse_buchung.buchungstext
+        result.konto_soll = eine_finesse_buchung.konto_soll
+        result.konto_haben = eine_finesse_buchung.konto_haben
+        result.kostenstelle = eine_finesse_buchung.kostenstelle
+        result.steuer_konto = eine_finesse_buchung.steuer_konto
+        result.steuerfall = eine_finesse_buchung.steuerfall
+        result.finesse_steuercode = eine_finesse_buchung.finesse_steuercode
+        result.rechnungsnummer = eine_finesse_buchung.rechnungsnummer
+        #result.vf_belegnummer = eine_finesse_buchung.vf_belegnummer
+
+        result.betrag_haben = Decimal(0)
+        result.betrag_soll = Decimal(0)
+        result.steuer_betrag_haben = Decimal(0)
+        result.steuer_betrag_soll = Decimal(0)
+
+        for b in finesse_buchungen:
+            result.subtract_betraege_von(b)
 
         return result
 
