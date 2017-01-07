@@ -8,8 +8,14 @@ import VF_Buchung
 import Finesse_Buchung
 import csv
 import UnicodeCSV
+import codecs
 import Configuration
 from decimal import Decimal
+
+vf_import_file_name = u'Zum Import in Vereinsflieger.csv'
+finesse_import_file_name = u'Zum Import in Finesse.csv'
+protokoll_file_name = u'Protokoll.txt'
+fehler_file_name = u'Fehlerhafte Buchungen.csv'
 
 csv.register_dialect('Vereinsflieger', delimiter=";", strict=True)
 
@@ -40,6 +46,8 @@ class MainController:
         # argparse exits on error after printing a message - no need to modify this.
         self.parse_args()
 
+        self.open_protokoll_file()
+
         try:
             self.open_config()
 
@@ -62,28 +70,22 @@ class MainController:
             self.raise_if_pending_errors()
 
             if len(finesse_export_list) > 0:
-                # (head, tail) = os.path.split(self.parsed_args.vf_path)
-                # vf_ExportPath = os.path.join(head, u'Zum Import in Vereinsflieger.csv')
-                vf_exportpath = u'Zum Import in Vereinsflieger.csv'
-                f = open(vf_exportpath, 'wb')
+                f = open(vf_import_file_name, 'wb')
                 self.exportFinesseBuchungenToVF(finesse_export_list, f)
 
             if len(vf_exportList) > 0:
-                # (head, tail) = os.path.split(self.parsed_args.finesse_path)
-                # finesse_ExportPath = os.path.join(head, u'Zum Import in Finesse.csv')
-                finesse_exportpath = u'Zum Import in Finesse.csv'
-                f = open(finesse_exportpath , 'wb')
+                f = open(finesse_import_file_name , 'wb')
                 self.exportVFBuchungenToFinesse(vf_exportList, f)
 
         except StopRun:
             self.report_errors()
-            print u"Abbruch nach Fehlern."
+            self.protokoll_stream.write(u"Abbruch nach Fehlern.")
 
         except:
-            print u"Abbruch wegen unerwarteten Fehlers:",  sys.exc_info()[0]
+            self.protokoll_stream.write(u"Abbruch wegen unerwarteten Fehlers: {0}".format(sys.exc_info()[0]))
 
         else:
-            print u"Datenaustausch erfolgreich beendet."
+            self.protokoll_stream.write(u"Datenaustausch erfolgreich beendet.")
 
     def parse_args(self):
         parser = argparse.ArgumentParser()
@@ -91,6 +93,15 @@ class MainController:
         parser.add_argument('--finesse_export')
         parser.add_argument('-c', '--config')
         self.parsed_args = parser.parse_args()
+
+    def open_protokoll_file(self):
+        f = open(protokoll_file_name, 'wb')
+
+        # Mark the file as using utf-8
+        bom = bytearray([239, 187, 191])    # the utf-8 byte order mark
+        f.write(bom)
+
+        self.protokoll_stream = codecs.getwriter("utf-8")(f)
 
     def open_config(self):
         # Zur Zeit muss der Konfigurationspfad als Parameter angegeben werden.
@@ -104,7 +115,7 @@ class MainController:
             config_dict = yaml.load(stream)
             self.konfiguration = Configuration.Konfiguration(config_dict)
         except yaml.parser.ParserError as error:
-            print u"Fehler beim Lesen der Konfiguration von „{0}“:".format(stream.name), error
+            self.protokoll_stream.write(u"Fehler beim Lesen der Konfiguration von „{0}“: {1}".format(stream.name, error))
             raise StopRun()
 
     def is_buchung_exported_to_finesse(self, buchung):
@@ -141,7 +152,7 @@ class MainController:
 
         for row_dict in reader:
             if u'<ÜBERHANG>' in row_dict:
-                print u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>'])
+                self.protokoll_stream.write(u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>']))
                 raise StopRun()
 
             b = VF_Buchung.VF_Buchung(self.konfiguration)
@@ -199,7 +210,7 @@ class MainController:
 
         for row_dict in reader:
             if u'<ÜBERHANG>' in row_dict:
-                print u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>'])
+                self.protokoll_stream.write(u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>']))
                 raise StopRun()
 
             b = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
@@ -352,21 +363,28 @@ class MainController:
             raise StopRun()
 
     def report_errors(self):
+        f = open(fehler_file_name, 'wb')
+
+        # Mark the file as using utf-8
+        bom = bytearray([239, 187, 191])    # the utf-8 byte order mark
+        f.write(bom)
+        f_utf8 = codecs.getwriter("utf-8")(f)
+
         if len(self.fehlerhafte_vf_buchungen) > 0:
-            print u"Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:"
-            self.write_fehlerhafte_buchungen(self.fehlerhafte_vf_buchungen, self.vf_export_fieldnames)
-            print u""
+            f_utf8.writelines([u"Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:", os.linesep])
+            self.write_fehlerhafte_buchungen(self.fehlerhafte_vf_buchungen, self.vf_export_fieldnames, f)
+            f_utf8.writelines([os.linesep])
 
         if len(self.fehlerhafte_finesse_buchungen) > 0:
-            print u"Folgende Buchungen aus Finesse können nicht verarbeitet werden:"
-            self.write_fehlerhafte_buchungen(self.fehlerhafte_finesse_buchungen, self.finesse_export_fieldnames)
-            print u""
+            f_utf8.write(u"Folgende Buchungen aus Finesse können nicht verarbeitet werden:")
+            self.write_fehlerhafte_buchungen(self.fehlerhafte_finesse_buchungen, self.finesse_export_fieldnames, f)
+            f_utf8.write(u"")
 
-    def write_fehlerhafte_buchungen(self, buchungen, fieldnames):
+    def write_fehlerhafte_buchungen(self, buchungen, fieldnames, filehandle):
         fieldnames.insert(0, u'Fehler')
-        writer = UnicodeCSV.UnicodeDictWriter(sys.stdout,
+        writer = UnicodeCSV.UnicodeDictWriter(filehandle,
                                    fieldnames,
-                                   encoding = None,
+                                   encoding = "utf-8",
                                    lineterminator=os.linesep,
                                    restval='',
                                    delimiter=";",
