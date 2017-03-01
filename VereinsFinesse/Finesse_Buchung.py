@@ -306,6 +306,14 @@ class Finesse_Buchung:
         return (self.konto_haben == other_buchung.konto_haben
             and self.konto_soll == other_buchung.konto_soll)
 
+    def anti_matches_konten_of_buchung(self, other_buchung):
+        """
+        :param other_buchung:Finesse_Buchung
+        :rtype: bool
+        """
+        return (self.konto_haben == other_buchung.konto_soll
+            and self.konto_soll == other_buchung.konto_haben)
+
     @classmethod
     def fieldnames_for_export_to_finesse(cls):
         return [u'Datum',u'Buchungstext',u'Betrag',u'USt-Code',u'Betrag USt',u'Konto Haben',u'Konto Soll',u'Kostenrechnungsobjekt 1',u'Rechnungsnummer',u'Belegnummer 1',u'VF_Nr']
@@ -408,11 +416,12 @@ class Finesse_Buchung:
                 self.steuer_betrag_soll -= andere_buchung.steuer_betrag_soll
                 self.steuer_betrag_haben -= andere_buchung.steuer_betrag_haben
         else:
+            # TODO: unit test for this case
             assert andere_buchung.anti_matches_konten_of_buchung(self)
             self.betrag_soll += andere_buchung.betrag_haben
             self.betrag_haben += andere_buchung.betrag_soll
             if self.has_steuer:
-                assert (self.steuer_betrag_soll == Decimal(0)) or (andere_buchung.steuer_betrag_haben == Decimal(0))
-                assert (self.steuer_betrag_haben == Decimal(0)) or (andere_buchung.steuer_betrag_soll == Decimal(0))
+                assert (self.steuer_betrag_soll == Decimal(0)) or (andere_buchung.steuer_betrag_soll == Decimal(0))
+                assert (self.steuer_betrag_haben == Decimal(0)) or (andere_buchung.steuer_betrag_haben == Decimal(0))
                 self.steuer_betrag_soll += andere_buchung.steuer_betrag_haben
                 self.steuer_betrag_haben += andere_buchung.steuer_betrag_soll
