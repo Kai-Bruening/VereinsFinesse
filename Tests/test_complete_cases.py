@@ -47,6 +47,10 @@ class CompleteTestCases (unittest.TestCase):
         # Konten. In solchen Fällen wird die alte Buchung in Finesse storniert und eine neue angelegt.
         self.do_test_in_directory(u'Inkompatible Aenderungen im VF')
 
+    def test_erfolgskonten_nach_vf(self):
+        # Später dazu gekommen: wir übernehmen jetzt alle Buchungen auf Erfolgskonten in den VF.
+        self.do_test_in_directory(u'Erfolgskonten nach VF')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
@@ -72,7 +76,7 @@ class CompleteTestCases (unittest.TestCase):
             finesse_export_list = controller.vfBuchungenForExportToFinesse()
 
         if controller.has_fehlerhafte_buchungen:
-            controller.report_errors()
+            controller.report_fehlerhafte_buchungen()
             self.fail("Fehlerhafte Buchungen in der Eingabe")
 
         # Export for VF

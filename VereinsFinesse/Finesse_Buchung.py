@@ -239,11 +239,21 @@ class Finesse_Buchung:
 
         result = VF_Buchung.VF_Buchung(self.konfiguration)
 
-        # Wenn es die Freiheit gibt (keine Steuer) ordnen wir das Mitgliederkonto dem "Konto" zu, so dass es im
-        # Journal des VF möglichst links steht.
-        konto_im_haben = self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(self.konto_haben)
-        if self.has_steuer and self.steuer_betrag_haben != Decimal(0):
-            konto_im_haben = False
+        # Der Normalfall ist, das Habenkonto auf 'Konto' im VF abzubilden. Bei positivem Betrag wird dieses Konto
+        # vom VF als Habenkonto angezeigt.
+        konto_im_haben = True
+        if self.steuerfall:
+            # Der Bruttobetrag muss immer auf das Konto gebucht werden, der Nettobetrag auf das Gegenkonto.
+            if abs (self.betrag_soll) > abs (self.betrag_haben):
+                konto_im_haben = False
+        else:
+            if self.betrag_soll != self.betrag_haben:
+                self.fehler_beschreibung = u'Buchung ohne Steuer hat differierende Soll- und Habenbeträge'
+                return None
+
+        # Notiz: früher haben wir Mitgliedskonten möglichst dem "Konto" zugeordnet, damit sie im Journal des VF
+        # möglichst links stehen. Das bringt seit der Umstellung auf Soll- und Haben-Darstellung nichts mehr und
+        # ist daher weg.
 
         if konto_im_haben:
             result.konto = self.konto_haben_for_vf
@@ -251,16 +261,12 @@ class Finesse_Buchung:
             result.gegen_konto = self.konto_soll_for_vf
             result.gegen_konto_kostenstelle = self.konto_soll_kostenstelle
             result.betrag = self.betrag_haben
-            #if self.has_steuer:
-            #    result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
         else:
             result.konto = self.konto_soll_for_vf
             result.konto_kostenstelle = self.konto_soll_kostenstelle
             result.gegen_konto = self.konto_haben_for_vf
             result.gegen_konto_kostenstelle = self.konto_haben_kostenstelle
             result.betrag = -self.betrag_soll
-            #if self.has_steuer:
-            #    result.steuer_konto = self.steuer_konto # TODO: map to correct Konto
 
         if self.steuerfall:
             if self.steuerfall.art == Configuration.steuerart.Vorsteuer:
