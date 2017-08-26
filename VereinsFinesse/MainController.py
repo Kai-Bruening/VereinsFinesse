@@ -25,9 +25,20 @@ class MainController:
 
     def __init__(self):
         self.finesse_buchungen = []
+
+        # Alle Buchungen aus Finesse, die prinzipiell nach VF exportiert werden können einschließlich bereits
+        # exportierter Buchungen. Dies sind alle Buchungen im Dialog, die nicht aus VF importiert wurden.
+        self.exportable_finesse_buchungen_by_finesse_journal_nr = {}
+
+        # Alle Buchungen aus Finesse, die aus VF importiert wurden. Diese Buchungen können im Dialog oder in
+        # Vereinsflieger-Import sein.
         self.finesse_buchungen_originally_imported_from_vf = []
-        self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr = {}
-        self.finesse_buchungen_by_konten_key = {}   # Für den Storno-Check
+
+        # Finesse-Buchungen, die neu zum VF exportiert werden sollen.
+        # Untermenge von exportable_finesse_buchungen_by_finesse_journal_nr.
+        self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr = {}
+
+        self.finesse_buchungen_for_export_by_konten_key = {}   # Für den Storno-Check
 
         self.vf_buchungen = []
         self.vf_buchungenImportedFromFinesse = {}
@@ -246,23 +257,25 @@ class MainController:
 
             # Nur Buchungen auf Mitgliederkonten werden von Finesse in den Vereinsflieger übernommen (um die Salden
             # auf den Mitgliederkonten parallel zu halten).
-            elif (b.finesse_buchungs_journal == Finesse_Buchung.finesse_fournal_for_export_to_vf
-                  and self.is_buchung_exported_to_vf(b)):
-                self.add_finesse_buchung_to_table_by_konten_key(b)
-                # Storno-Check
-                #if not self.is_finesse_buchung_storno(b):
-                if b.finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
-                    b.fehler_beschreibung = u'Mitgliederbuchung aus Finesse mit nicht-eindeutiger Journalnummer ({0})'.format(b.finesse_journalnummer)
+            elif b.finesse_buchungs_journal == Finesse_Buchung.finesse_fournal_for_export_to_vf:
+                if b.finesse_journalnummer in self.exportable_finesse_buchungen_by_finesse_journal_nr:
+                    b.fehler_beschreibung = u'Buchung aus Finesse mit nicht-eindeutiger Dialog-Journalnummer ({0})'.format(
+                        b.finesse_journalnummer)
                     self.fehlerhafte_finesse_buchungen.append(b)
                 else:
-                    self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[b.finesse_journalnummer] = b
+                    self.exportable_finesse_buchungen_by_finesse_journal_nr[b.finesse_journalnummer] = b
+
+                    if self.is_buchung_exported_to_vf(b):
+                        self.add_finesse_buchung_to_table_by_konten_key(b)
+                        assert b.finesse_journalnummer not in self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr
+                        self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr[b.finesse_journalnummer] = b
 
     def add_finesse_buchung_to_table_by_konten_key(self, finesse_buchung):
         konten_key = finesse_buchung.konten_key
-        if konten_key in self.finesse_buchungen_by_konten_key:
-            self.finesse_buchungen_by_konten_key[konten_key].append(finesse_buchung)
+        if konten_key in self.finesse_buchungen_for_export_by_konten_key:
+            self.finesse_buchungen_for_export_by_konten_key[konten_key].append(finesse_buchung)
         else:
-            self.finesse_buchungen_by_konten_key[konten_key] = [finesse_buchung]
+            self.finesse_buchungen_for_export_by_konten_key[konten_key] = [finesse_buchung]
 
     def exportVFBuchungenToFinesse(self, vfBuchungen, filehandle):
         writer = UnicodeCSV.UnicodeDictWriter(filehandle,
@@ -283,10 +296,10 @@ class MainController:
             original_finesse_buchung = None
 
             finesse_journalnummer = vf_buchung.finesse_journalnummer
-            if not finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr:
+            if not finesse_journalnummer in self.exportable_finesse_buchungen_by_finesse_journal_nr:
                 vf_fehler_beschreibung = u'Originale Finesse-Buchung (Dialog: {0}) nicht gefunden'.format(finesse_journalnummer)
             else:
-                original_finesse_buchung = self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[finesse_journalnummer]
+                original_finesse_buchung = self.exportable_finesse_buchungen_by_finesse_journal_nr[finesse_journalnummer]
                 if original_finesse_buchung.kopierte_vf_buchung:
                     vf_fehler_beschreibung = u'Mehrere VF-Buchungen zu einer Journalnummer in Finesse (Dialog: {0})'.format(finesse_journalnummer)
                     finesse_fehler_beschreibung = u'Mehrere VF-Buchungen zu dieser Finesse-Buchung gefunden'
@@ -313,7 +326,7 @@ class MainController:
         :rtype: list
         """
         result = []
-        for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr.itervalues():
+        for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr.itervalues():
             if not finesse_buchung.kopierte_vf_buchung and not finesse_buchung.fehler_beschreibung:
                 vf_buchung = finesse_buchung.vf_buchung_for_export()
                 if vf_buchung:
@@ -341,7 +354,7 @@ class MainController:
         return vf_buchung
 
     def entferne_stornierte_finesse_buchungen(self):
-        for key, storno_group in self.finesse_buchungen_by_konten_key.items():
+        for key, storno_group in self.finesse_buchungen_for_export_by_konten_key.items():
             index = 0
             while index < len(storno_group):
                 b = storno_group[index]
@@ -355,9 +368,9 @@ class MainController:
                         storno_partner = b.lookup_storno_partner(storno_group[0:index])
                         if storno_partner:
                             # Entferne das stornierte Buchungspaar aus Export- und Kandidatenliste.
-                            del self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[
+                            del self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr[
                                 b.finesse_journalnummer]
-                            del self.finesse_buchungen_for_export_to_vf_by_finesse_fournal_nr[
+                            del self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr[
                                 storno_partner.finesse_journalnummer]
                             del storno_group[index]
                             storno_group.remove(storno_partner)

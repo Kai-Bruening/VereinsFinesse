@@ -51,6 +51,11 @@ class CompleteTestCases (unittest.TestCase):
         # Später dazu gekommen: wir übernehmen jetzt alle Buchungen auf Erfolgskonten in den VF.
         self.do_test_in_directory(u'Erfolgskonten nach VF')
 
+    def test_importierte_finesse_konten_ohne_config(self):
+        # Buchungen, die einmal von Finesse nach VF importiert wurden, müssen unabhängig von der Konfiguration beim
+        # nächsten Abgleich wieder gefunden werden.
+        self.do_test_in_directory(u'Importierte Finesse Konten ohne Config')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
