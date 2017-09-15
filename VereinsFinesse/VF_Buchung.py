@@ -50,6 +50,9 @@ class VF_Buchung:
         self.gegen_konto = None
         self.gegen_konto_kostenstelle = None
         self.betrag = None
+        self.betrag_konto = None
+        self.betrag_gegen_konto = None
+        self.betrag_steuer_konto = None
         self.steuer_konto = None
         self.mwst_satz = None
         self.buchungstext = None
@@ -96,6 +99,9 @@ class VF_Buchung:
         self.abrechnungsnr = value_dict[u'Abrechnungsnr']   # Die Rechnungs"nummer" kann beliebiger Text sein
         self.rechnungsnummer = self.abrechnungsnr   # Die Rechnungs"nummer" kann beliebiger Text sein
         self.betrag = decimal_with_decimalcomma(value_dict[u'Betrag'])
+        self.betrag_konto = decimal_with_decimalcomma(value_dict[u'Betrag(Konto)'])
+        self.betrag_gegen_konto = decimal_with_decimalcomma(value_dict[u'Betrag(G-Konto)'])
+        self.betrag_steuer_konto = decimal_with_decimalcomma(value_dict[u'Betrag(S-Konto)'])
 
         steuer_satz = Decimal(0)
         steuer_satz_text = value_dict[u'MwSt(%)']
@@ -144,6 +150,16 @@ class VF_Buchung:
         # Die Zuordnung der Konten auf Soll und Haben nach dem Vorzeichen ist dann nicht möglich.
         return self.betrag == Decimal(0)
 
+    # @property
+    # def konto_brutto(self):
+    #     assert abs(self.betrag_konto) != abs(self.betrag_gegen_konto)
+    #     return self.konto if abs(self.betrag_konto) > abs(self.betrag_gegen_konto) else self.gegen_konto
+    #
+    # @property
+    # def konto_netto(self):
+    #     assert abs(self.betrag_konto) != abs(self.betrag_gegen_konto)
+    #     return self.konto if abs(self.betrag_konto) < abs(self.betrag_gegen_konto) else self.gegen_konto
+
     @property
     def konto_for_finesse(self):
         return self.konfiguration.finesse_konto_from_vf_konto(self.konto)
@@ -166,6 +182,26 @@ class VF_Buchung:
         if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
             assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
             return False
+
+        # test_buchung = original_finesse_buchung.vf_buchung_for_export()
+        # if not test_buchung:
+        #     return False
+        #
+        # if (test_buchung.mwst_satz != self.mwst_satz
+        #     or test_buchung.steuer_konto != self.steuer_konto):
+        #     return False
+        #
+        # if (test_buchung.konto == self.konto
+        #     and test_buchung.gegen_konto == self.gegen_konto
+        #     and test_buchung.betrag == self.betrag):
+        #     return True
+        #
+        # # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
+        # if (not original_finesse_buchung.has_steuer
+        #     and test_buchung.konto == self.gegen_konto
+        #     and test_buchung.gegen_konto == self.konto
+        #     and test_buchung.betrag == -self.betrag):
+        #     return True
 
         if original_finesse_buchung.steuerfall:
             if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
@@ -211,7 +247,7 @@ class VF_Buchung:
         # Wir bilden Gruppen von kompatiblen Finesse-Buchungen, die untereinander konsolidiert werden können.
         kompatible_buchungen_key = finesse_buchung.kompatible_buchungen_key
         if kompatible_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
-            kompatible_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key ]
+            kompatible_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key]
             kompatible_buchungen.append(finesse_buchung)
             kompatible_buchungen.sort(key=lambda x: x.finesse_journalnummer)
         else:

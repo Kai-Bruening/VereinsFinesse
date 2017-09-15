@@ -1,2 +1,2 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben
-123456;18.01.2017;1001;5555-700;36,42;1599;19;Bauhaus/Batterien Werkstatt;FD;406
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
+123456;18.01.2017;1001;5555-700;36,42;1599;19;Bauhaus/Batterien Werkstatt;FD;406;"";"";"";"";"36,42";"H";"36,42";"-30,61";"-5,81";

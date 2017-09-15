@@ -1,3 +1,3 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben
-"348581";"08.01.2016";"10682";"5102-920";"-59,88";"1879";"19";"Belastung Tankstelle 41,70 Liter Mogas";"BT";"0";"";"";"";"";"59,88";"S";
-"348582";"09.01.2016";"10682";"5102-920";"59,88";"1879";"19";"Erstattung Tankstelle 41,70 Liter Mogas";"BT";"0";"";"";"";"";"59,88";"H";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
+"348581";"08.01.2016";"10682";"5102-920";"-59,88";"1879";"19";"Belastung Tankstelle 41,70 Liter Mogas";"BT";"0";"";"";"";"";"59,88";"S";"-59,88";"50,32";"9,56";
+"348582";"09.01.2016";"10682";"5102-920";"59,88";"1879";"19";"Erstattung Tankstelle 41,70 Liter Mogas";"BT";"0";"";"";"";"";"59,88";"H";"59,88";"-50,32";"-9,56";

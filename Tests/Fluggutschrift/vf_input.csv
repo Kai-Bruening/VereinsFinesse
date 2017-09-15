@@ -1,2 +1,2 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben
-"361957";"27.03.2016";"21551";"5570";"18,27";"1599";"7";"Gutschrift Flug";"";"0";"";"";"";"";"18,27";"H";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
+"361957";"27.03.2016";"21551";"5570";"18,27";"1599";"7";"Gutschrift Flug";"";"0";"";"";"";"";"18,27";"H";"18,27";"-17,07";"-1,20";

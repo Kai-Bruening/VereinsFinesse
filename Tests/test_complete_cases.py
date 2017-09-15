@@ -56,6 +56,12 @@ class CompleteTestCases (unittest.TestCase):
         # nächsten Abgleich wieder gefunden werden.
         self.do_test_in_directory(u'Importierte Finesse Konten ohne Config')
 
+    # def test_mehrere_finesse_buchungen_mit_derselben_journalnummer(self):
+    #     self.do_test_in_directory(u'Mehrere Finesse Buchungen mit derselben Journalnummer')
+
+    # def test_gutschrift_mitglied_fuer_ausgelegte_rechnung(self):
+    #     self.do_test_in_directory(u'Gutschrift Mitglied für ausgelegte Rechnung')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
