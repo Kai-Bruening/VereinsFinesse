@@ -163,9 +163,9 @@ class VF_Buchung:
             konto_ist_haben = konto_ist_brutto if steuerart == Configuration.steuerart.Vorsteuer else not konto_ist_brutto
 
             if steuerart == Configuration.steuerart.Umsatzsteuer:
-                self.steuer_betrag_soll = self.betrag_steuer_konto
+                self.steuer_betrag_haben = self.betrag_steuer_konto
             else:
-                self.steuer_betrag_haben = -self.betrag_steuer_konto
+                self.steuer_betrag_soll  = -self.betrag_steuer_konto
         else:
             # Ohne Steuer nehmen wir die Zuordnung, die zu positiven Beträgen in der Buchung führt.
             # Wenn der Betrag 0 ist, wird das Konto zum Habenkonto.
@@ -229,7 +229,7 @@ class VF_Buchung:
         # test_buchung = original_finesse_buchung.vf_buchung_for_export()
         # if not test_buchung:
         #     return False
-        #
+
         # if (test_buchung.mwst_satz != self.mwst_satz
         #     or test_buchung.steuer_konto != self.steuer_konto):
         #     return False
@@ -253,18 +253,67 @@ class VF_Buchung:
             if self.steuerfall:
                 return False
 
-        if (self.konto == original_finesse_buchung.vf_konto
-            and self.gegen_konto == original_finesse_buchung.vf_gegen_konto
-            and self.betrag == original_finesse_buchung.vf_betrag):
+        if self.matches_finesse_buchung(original_finesse_buchung):
             return True
-        # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
-        if (not original_finesse_buchung.has_steuer
-            and (self.konto == original_finesse_buchung.vf_gegen_konto
-                 and self.gegen_konto == original_finesse_buchung.vf_konto
-                 and self.betrag == -original_finesse_buchung.vf_betrag)
-            ):
-            return True
+
+        if self.versuche_konten_tausch():
+            if self.matches_finesse_buchung(original_finesse_buchung):
+                return True
+
+        # if (self.konto == original_finesse_buchung.vf_konto
+        #     and self.gegen_konto == original_finesse_buchung.vf_gegen_konto
+        #     and self.betrag == original_finesse_buchung.vf_betrag):
+        #     return True
+        # # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
+        # if (not original_finesse_buchung.has_steuer
+        #     and (self.konto == original_finesse_buchung.vf_gegen_konto
+        #          and self.gegen_konto == original_finesse_buchung.vf_konto
+        #          and self.betrag == -original_finesse_buchung.vf_betrag)
+        #     ):
+        #     return True
         return False
+
+    def matches_finesse_buchung(self, other_buchung):
+        """
+         :param other_buchung:Finesse_Buchung
+         :rtype: bool
+         """
+        if self.konto_soll != other_buchung.konto_soll_for_vf:
+            return False
+        if self.konto_haben != other_buchung.konto_haben_for_vf:
+            return False
+        if self.betrag_soll != other_buchung.betrag_soll:
+            return False
+        if self.betrag_haben != other_buchung.betrag_haben:
+            return False
+        if self.steuer_betrag_soll != other_buchung.steuer_betrag_soll:
+            return False
+        if self.steuer_betrag_haben != other_buchung.steuer_betrag_haben:
+            return False
+        return True
+
+    def versuche_konten_tausch(self):
+        # Konten können nur in Buchungen ohne Steuer getauscht werden.
+        # if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
+        #     return False
+
+        temp_konto = self.konto_soll
+        self.konto_soll = self.konto_haben
+        self.konto_haben = temp_konto
+
+        temp_kostenstelle = self.konto_soll_kostenstelle
+        self.konto_soll_kostenstelle = self.konto_haben_kostenstelle
+        self.konto_haben_kostenstelle = temp_kostenstelle
+
+        temp_betrag = self.betrag_soll
+        self.betrag_soll = -self.betrag_haben
+        self.betrag_haben = -temp_betrag
+
+        temp_betrag = self.steuer_betrag_soll
+        self.steuer_betrag_soll = -self.steuer_betrag_haben
+        self.steuer_betrag_haben = -temp_betrag
+
+        return True
 
     @property
     def finesse_kompatible_buchungen_key(self):

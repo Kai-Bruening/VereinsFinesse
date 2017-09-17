@@ -61,8 +61,8 @@ class Finesse_Buchung:
         self.steuer_konto_name = None
         self.betrag_soll = None
         self.betrag_haben = None
-        self.steuer_betrag_soll = None
-        self.steuer_betrag_haben = None
+        self.steuer_betrag_soll = Decimal(0)
+        self.steuer_betrag_haben = Decimal(0)
         self.mwst_satz = None
         self.rechnungsnummer = None
         self.steuerfall = None
