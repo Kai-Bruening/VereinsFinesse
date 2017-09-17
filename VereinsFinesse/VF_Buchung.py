@@ -61,6 +61,15 @@ class VF_Buchung:
         self.abrechnungsnr = None
         self.steuerfall = None
 
+        self.konto_soll = None
+        self.konto_soll_kostenstelle = None
+        self.konto_haben = None
+        self.konto_haben_kostenstelle = None
+        self.betrag_soll = None
+        self.betrag_haben = None
+        self.steuer_betrag_soll = Decimal(0)
+        self.steuer_betrag_haben = Decimal(0)
+
         self.finesse_journalnummer = None
 
         # Die Finess-Buchung, von der dieser bei einem früheren Abgleich importiert wurde.
@@ -135,6 +144,40 @@ class VF_Buchung:
             self.fehler_beschreibung = u'Beide Konten haben eine Kostenstelle'
             return False
 
+        return self.bestimme_soll_und_haben()
+        # return True
+
+    def bestimme_soll_und_haben(self):
+        if abs(self.betrag_konto) != abs(self.betrag_gegen_konto):
+            # Wenn die Buchung einen Steuerbetrag enthält, ist die Zuordnung zu Soll und Haben zwingend nach der
+            # Finesse-Regel:
+            #   Vorsteuer: Haben Brutto, Soll Netto
+            #   U-St:      Soll Brutto, Haben Netto
+            konto_ist_brutto = abs(self.betrag_konto) > abs(self.betrag_gegen_konto)
+            steuerart = Configuration.steuerart.Keine
+            if self.steuerfall:
+                steuerart = self.steuerfall.art
+            if steuerart == Configuration.steuerart.Keine:
+                self.fehler_beschreibung = u'Ungleiche Beträge ohne Angabe einer Steuerart'
+                return False
+            konto_ist_haben = konto_ist_brutto if steuerart == Configuration.steuerart.Vorsteuer else not konto_ist_brutto
+
+            if steuerart == Configuration.steuerart.Umsatzsteuer:
+                self.steuer_betrag_soll = self.betrag_steuer_konto
+            else:
+                self.steuer_betrag_haben = -self.betrag_steuer_konto
+        else:
+            # Ohne Steuer nehmen wir die Zuordnung, die zu positiven Beträgen in der Buchung führt.
+            # Wenn der Betrag 0 ist, wird das Konto zum Habenkonto.
+            konto_ist_haben = self.betrag_konto >= Decimal(0)
+
+        self.konto_soll = self.gegen_konto if konto_ist_haben else self.konto
+        self.konto_soll_kostenstelle = self.gegen_konto_kostenstelle if konto_ist_haben else self.konto_kostenstelle
+        self.konto_haben = self.konto if konto_ist_haben else self.gegen_konto
+        self.konto_haben_kostenstelle = self.konto_kostenstelle if konto_ist_haben else self.gegen_konto_kostenstelle
+        self.betrag_soll = -(self.betrag_gegen_konto if konto_ist_haben else self.betrag_konto)
+        self.betrag_haben = self.betrag_konto if konto_ist_haben else self.betrag_gegen_konto
+
         return True
 
     @property
@@ -168,15 +211,15 @@ class VF_Buchung:
     def gegen_konto_for_finesse(self):
         return self.konfiguration.finesse_konto_from_vf_konto(self.gegen_konto)
 
-    @property
-    def konto_haben(self):
-        assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
-        return self.konto if self.betrag > Decimal(0) else self.gegen_konto
-
-    @property
-    def konto_soll(self):
-        assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
-        return self.gegen_konto if self.betrag > Decimal(0) else self.konto
+    # @property
+    # def konto_haben(self):
+    #     assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
+    #     return self.konto if self.betrag > Decimal(0) else self.gegen_konto
+    #
+    # @property
+    # def konto_soll(self):
+    #     assert not self.is_null     # der Nullfall ist entartet, Kontenzuordnung ist nicht möglich
+    #     return self.gegen_konto if self.betrag > Decimal(0) else self.konto
 
     def validate_for_original_finesse_buchung(self, original_finesse_buchung):
         if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen

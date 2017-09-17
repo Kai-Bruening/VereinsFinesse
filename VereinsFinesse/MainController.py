@@ -106,7 +106,7 @@ class MainController:
             else:
                 self.protokoll_stream.writelines([u"Datenaustausch ohne Fehler beendet.", os.linesep])
 
-            self.report_fehlerhafte_buchungen()
+            self.report_fehlerhafte_buchungen(fehler_file_name)
 
     def parse_args(self):
         parser = argparse.ArgumentParser()
@@ -414,9 +414,9 @@ class MainController:
     def has_fehlerhafte_buchungen(self):
         return len(self.fehlerhafte_vf_buchungen) > 0 or len(self.fehlerhafte_finesse_buchungen) > 0
 
-    def report_fehlerhafte_buchungen(self):
+    def report_fehlerhafte_buchungen(self, path):
         if self.has_fehlerhafte_buchungen:
-            f = open(fehler_file_name, 'wb')
+            f = open(path, 'wb')
 
             # Mark the file as using utf-8
             bom = bytearray([239, 187, 191])    # the utf-8 byte order mark
@@ -434,7 +434,7 @@ class MainController:
                 f_utf8.write(u"")
         else:
             try:
-                os.remove(fehler_file_name)
+                os.remove(path)
             except:
                 pass
 

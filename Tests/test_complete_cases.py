@@ -56,11 +56,11 @@ class CompleteTestCases (unittest.TestCase):
         # nächsten Abgleich wieder gefunden werden.
         self.do_test_in_directory(u'Importierte Finesse Konten ohne Config')
 
-    # def test_mehrere_finesse_buchungen_mit_derselben_journalnummer(self):
-    #     self.do_test_in_directory(u'Mehrere Finesse Buchungen mit derselben Journalnummer')
+    def test_mehrere_finesse_buchungen_mit_derselben_journalnummer(self):
+        self.do_test_in_directory(u'Mehrere Finesse Buchungen mit derselben Journalnummer')
 
-    # def test_gutschrift_mitglied_fuer_ausgelegte_rechnung(self):
-    #     self.do_test_in_directory(u'Gutschrift Mitglied für ausgelegte Rechnung')
+    def test_gutschrift_mitglied_fuer_ausgelegte_rechnung(self):
+        self.do_test_in_directory(u'Gutschrift Mitglied für ausgelegte Rechnung')
 
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
@@ -79,19 +79,20 @@ class CompleteTestCases (unittest.TestCase):
 
         controller.connectImportedVFBuchungen()
         controller.connectImportedFinesseBuchungen()
-
-        if not controller.has_fehlerhafte_buchungen:
-            controller.entferne_stornierte_finesse_buchungen()
-
-            vf_export_list = controller.finesseBuchungenForExportToVF()
-            finesse_export_list = controller.vfBuchungenForExportToFinesse()
-
-        if controller.has_fehlerhafte_buchungen:
-            controller.report_fehlerhafte_buchungen()
-            self.fail("Fehlerhafte Buchungen in der Eingabe")
+        controller.entferne_stornierte_finesse_buchungen()
 
         # Export for VF
+        self.handle_export_for_vf(test_dir, controller)
+
+        # Export for Finesse
+        self.handle_export_for_finesse(test_dir, controller)
+
+        # Fehlerhafte Buchungen
+        self.handle_fehlerhafte_buchungen(test_dir, controller)
+
+    def handle_export_for_vf(self, test_dir, controller):
         expected_path = os.path.join(test_dir, u'vf_expected.csv')
+        vf_export_list = controller.finesseBuchungenForExportToVF()
         if len(vf_export_list ) > 0:
             result_path = os.path.join(test_dir, u'vf_result.csv')
             f = open(result_path , 'w+b')
@@ -106,8 +107,9 @@ class CompleteTestCases (unittest.TestCase):
         else:
             self.assertFalse(os.path.exists(expected_path), "Expected vf results, but non were produced")
 
-        # Export for Finesse
+    def handle_export_for_finesse(self, test_dir, controller):
         expected_path = os.path.join(test_dir, u'finesse_expected.csv')
+        finesse_export_list = controller.vfBuchungenForExportToFinesse()
         if len(finesse_export_list) > 0:
             result_path = os.path.join(test_dir, u'finesse_result.csv')
             f = open(result_path, 'w+b')
@@ -121,6 +123,20 @@ class CompleteTestCases (unittest.TestCase):
                 os.remove(result_path)
         else:
             self.assertFalse(os.path.exists(expected_path), "Expected finesse results, but non were produced")
+
+    def handle_fehlerhafte_buchungen(self, test_dir, controller):
+        expected_path = os.path.join(test_dir, u'fehler_expected.csv')
+        if controller.has_fehlerhafte_buchungen:
+            result_path = os.path.join(test_dir, u'fehler_result.csv')
+            controller.report_fehlerhafte_buchungen(result_path)
+            matches = False
+            if os.path.exists(expected_path):
+                matches = filecmp.cmp(result_path , expected_path)
+            self.assertTrue(matches, "Fehlerhafte Buchungen do not match expectation")
+            if matches: # else leave it available for inspection
+                os.remove(result_path)
+        else:
+            self.assertFalse(os.path.exists(expected_path), "Expected Fehlerhafte Buchungen, but non were produced")
 
 if __name__ == '__main__':
     unittest.main()
