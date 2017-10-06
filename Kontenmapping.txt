@@ -5,6 +5,17 @@ VF:
 Konto: Brutto, Gegenkonto: Netto (immer)
 Positiv: Haben, Negativ: Soll
 
+VF Import:
+	Ohne Steuer:
+		Betrag Postiv:
+			Konto 		->	Haben
+			Gegenkonto 	->	Soll
+
+		Betrag Negativ:
+			Konto 		->	Haben
+			Gegenkonto 	->	Soll
+
+
 
 Finesse:
 Vorsteuer: Haben Brutto, Soll Netto

@@ -1,0 +1,14 @@
+Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr
+Buchungsdatum im Format TT.MM.JJJJ;Nr. des Sachkontos;Betrag;Nr. des Sachkontos;Nr. des Sachkontos;Steuersatz (0,7,19 oder 20);Infotext;Kurztext der Belegart;Belegnummer
+01.10.2017;11564;100;1591;;;Ohne Steuer;;
+01.10.2017;11564;-100;1591;;;Ohne Steuer negativ;;
+01.10.2017;1591;100;11564;;;Ohne Steuer Kontentausch;;
+01.10.2017;1591;-100;11564;;;Ohne Steuer Kontentausch negativ;;
+01.10.2017;11564;-100;5120-900;1879;7;Rechnung mit Ust.;;
+01.10.2017;11564;100;5120-900;1879;7;Rechnung mit Ust. Negativ;;
+01.10.2017;5120-900;-100;11564;1879;7;Rechnung mit Ust., Kontentausch;;
+01.10.2017;5120-900;100;11564;1879;7;Rechnung mit Ust.;;
+01.10.2017;5120-900;-100;11564;1879;7;Rechnung mit Ust., negativ;;
+01.10.2017;11564;100;5570-200;1879;7;Rechnung mit Ust.;;
+01.10.2017;5570-200;100;11564;1879;7;Rechnung mit Ust.;;
+01.10.2017;5570-200;-100;11564;1879;7;Rechnung mit Ust., negativ;;

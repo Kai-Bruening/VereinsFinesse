@@ -145,7 +145,6 @@ class VF_Buchung:
             return False
 
         return self.bestimme_soll_und_haben()
-        # return True
 
     def bestimme_soll_und_haben(self):
         if abs(self.betrag_konto) != abs(self.betrag_gegen_konto):
@@ -294,8 +293,8 @@ class VF_Buchung:
 
     def versuche_konten_tausch(self):
         # Konten können nur in Buchungen ohne Steuer getauscht werden.
-        # if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
-        #     return False
+        if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
+            pass
 
         temp_konto = self.konto_soll
         self.konto_soll = self.konto_haben

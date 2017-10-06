@@ -57,10 +57,17 @@ class CompleteTestCases (unittest.TestCase):
         self.do_test_in_directory(u'Importierte Finesse Konten ohne Config')
 
     def test_mehrere_finesse_buchungen_mit_derselben_journalnummer(self):
+        # Finesse vergibt in manchen Fällen dieselbe Journalnummer für mehrere Buchungen.
+        # Bisher unterstützen wir den Import solcher Buchungen in den Vereinsflieger nicht. Allerdings kann
+        # eine Buchung einer solchen Gruppe in VF importiert werden.
         self.do_test_in_directory(u'Mehrere Finesse Buchungen mit derselben Journalnummer')
 
     def test_gutschrift_mitglied_fuer_ausgelegte_rechnung(self):
+        # Testet die richtige Wiedererkennung einer solchen Gutschrift aus Finesse im VF.
         self.do_test_in_directory(u'Gutschrift Mitglied für ausgelegte Rechnung')
+
+    def test_kontentausch_mit_steuer(self):
+        self.do_test_in_directory(u'Kontentausch mit Steuer')
 
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
