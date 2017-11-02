@@ -8,6 +8,7 @@ import decimal
 from decimal import Decimal
 import Configuration
 import CheckDigit
+import Kern_Buchung
 import Finesse_Buchung
 
 vf_belegart_for_import_from_finesse = u'FD'
@@ -70,6 +71,8 @@ class VF_Buchung:
         self.steuer_betrag_soll = Decimal(0)
         self.steuer_betrag_haben = Decimal(0)
 
+        self.kern_buchung = None
+
         self.finesse_journalnummer = None
 
         # Die Finess-Buchung, von der dieser bei einem früheren Abgleich importiert wurde.
@@ -102,6 +105,10 @@ class VF_Buchung:
             self.finesse_journalnummer = int(finesse_journal_nummer_text)
         else:
             self.vf_belegnummer = int(belegnummer_text)
+
+        self.kern_buchung = self.kern_buchung_from_vf_export(value_dict);
+        if not self.kern_buchung:
+            return False
 
         self.datum = value_dict[u'Datum']
         self.buchungstext = value_dict[u'Buchungstext']
@@ -179,6 +186,93 @@ class VF_Buchung:
 
         return True
 
+    def kern_buchung_from_vf_export(self, value_dict):
+        kern_buchung = Kern_Buchung.Kern_Buchung()
+
+        kern_buchung.datum = value_dict[u'Datum']
+        kern_buchung.buchungstext = value_dict[u'Buchungstext']
+
+        (konto, konto_kostenstelle) = vf_read_konto(value_dict[u'Konto'])
+        (gegen_konto, gegen_konto_kostenstelle) = vf_read_konto(value_dict[u'G-Konto'])
+
+        konto = self.konfiguration.konto_from_vf_konto(konto)
+        gegen_konto = self.konfiguration.konto_from_vf_konto(gegen_konto)
+
+        #TODO: die gleiche Kostenstellen für beide Konten könnte erlaubt werden.
+        if konto_kostenstelle and gegen_konto_kostenstelle:
+            self.fehler_beschreibung = u'Beide Konten haben eine Kostenstelle'
+            return False
+        kern_buchung.kostenstelle = konto_kostenstelle if konto_kostenstelle else gegen_konto_kostenstelle
+
+        betrag = decimal_with_decimalcomma(value_dict[u'Betrag'])
+        betrag_konto = decimal_with_decimalcomma(value_dict[u'Betrag(Konto)'])
+        betrag_gegen_konto = decimal_with_decimalcomma(value_dict[u'Betrag(G-Konto)'])
+        betrag_steuer_konto = decimal_with_decimalcomma(value_dict[u'Betrag(S-Konto)'])
+
+        steuer_satz = Decimal(0)
+        steuer_satz_text = value_dict[u'MwSt(%)']
+        steuer_konto_text = value_dict[u'S-Konto']
+        if len(steuer_konto_text) > 0:
+            steuer_konto = int(steuer_konto_text)
+            steuer_satz = Decimal(steuer_satz_text)
+            kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(steuer_konto, steuer_satz)
+            if not kern_buchung.steuerfall:
+                self.fehler_beschreibung = u'Kombination aus Steuerkonto ({0}) und Steuersatz ({1}) unbekannt'.format(steuer_konto, steuer_satz)
+                return False
+
+            # Der Steuersatz aus dem Vereinsflieger muss zum Steuerkonto passen.
+            if (steuer_satz != kern_buchung.steuerfall.ust_satz
+                and not (steuer_satz == Decimal(0) and not kern_buchung.steuerfall.ust_satz)):
+                self.fehler_beschreibung = (u'MwSt-Satz ({0}) aus Vereinsflieger passt nicht zum dem des Steuerkontos ({1})'
+                                            .format(steuer_satz, kern_buchung.steuerfall.ust_satz))
+                return False
+            kern_buchung.steuer_konto = steuer_konto
+        else:
+            # Kein Steuerkonto angegeben, dann muss der MwSt-Satz 0 sein (oder leer).
+            if len(steuer_satz_text) > 0 and int(steuer_satz_text) != 0:
+                self.fehler_beschreibung = u'MwSt-Satz > 0 ({0}) ohne Steuerkonto'.format(steuer_satz_text)
+                return False
+
+        # Wir nehmen immer die Zuordnung, die zu positiven Beträgen in der Buchung führt, so wie es VF anzeigt.
+        # Wenn der Betrag 0 ist, wird das Konto zum Habenkonto.
+        konto_ist_haben = betrag_konto >= Decimal(0)
+        betrag_steuer_ins_haben = False
+        if abs(betrag_konto) != abs(betrag_gegen_konto):
+            # Wenn die Buchung einen Steuerbetrag enthält, ist die Zuordnung zu Soll und Haben zwingend nach der
+            # Finesse-Regel:
+            #   Vorsteuer: Haben Brutto, Soll Netto
+            #   U-St:      Soll Brutto, Haben Netto
+            konto_ist_brutto = abs(betrag_konto) > abs(betrag_gegen_konto)
+            steuerart = Configuration.steuerart.Keine
+            if kern_buchung.steuerfall:
+                steuerart = kern_buchung.steuerfall.art
+            if steuerart == Configuration.steuerart.Keine:
+                self.fehler_beschreibung = u'Ungleiche Beträge ohne Angabe einer Steuerart'
+                return False
+            f_konto_ist_haben = konto_ist_brutto if steuerart == Configuration.steuerart.Vorsteuer else not konto_ist_brutto
+
+            betrag_steuer_ins_haben = steuerart == Configuration.steuerart.Umsatzsteuer
+            if konto_ist_haben != f_konto_ist_haben:
+                betrag_steuer_ins_haben = not betrag_steuer_ins_haben
+            if betrag_steuer_ins_haben:
+                kern_buchung.steuer_betrag_haben = betrag_steuer_konto
+            else:
+                kern_buchung.steuer_betrag_soll  = -betrag_steuer_konto
+        # else:
+        #     # Ohne Steuer nehmen wir die Zuordnung, die zu positiven Beträgen in der Buchung führt.
+        #     # Wenn der Betrag 0 ist, wird das Konto zum Habenkonto.
+        #     konto_ist_haben = betrag_konto >= Decimal(0)
+
+        kern_buchung.konto_soll = gegen_konto if konto_ist_haben else konto
+        kern_buchung.konto_haben = konto if konto_ist_haben else gegen_konto
+        kern_buchung.betrag_soll = -(betrag_gegen_konto if konto_ist_haben else betrag_konto)
+        kern_buchung.betrag_haben = betrag_konto if konto_ist_haben else betrag_gegen_konto
+
+        kern_buchung.rechnungsnummer = value_dict[u'Abrechnungsnr']   # Die Rechnungs"nummer" kann beliebiger Text sein
+        #TODO: kern_buchung.belegnummer
+
+        return kern_buchung
+
     @property
     def kostenstelle(self):
         kostenstelle = self.konto_kostenstelle
@@ -245,6 +339,52 @@ class VF_Buchung:
         #     and test_buchung.betrag == -self.betrag):
         #     return True
 
+        alt = self.validate_for_original_finesse_buchung_alt(original_finesse_buchung)
+
+        if self.kern_buchung.matches_buchung(original_finesse_buchung.kern_buchung):
+            if not alt:
+                pass
+            return True
+
+        test_buchung = self.kern_buchung.buchung_mit_getauschten_konten()
+        neu = test_buchung.matches_buchung(original_finesse_buchung.kern_buchung)
+        if alt != neu:
+            pass
+        return neu
+
+
+        # if original_finesse_buchung.steuerfall:
+        #     if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
+        #         return False
+        # else:
+        #     if self.steuerfall:
+        #         return False
+        #
+        # if self.matches_finesse_buchung(original_finesse_buchung):
+        #     return True
+        #
+        # if self.versuche_konten_tausch():
+        #     if self.matches_finesse_buchung(original_finesse_buchung):
+        #         return True
+
+        # if (self.konto == original_finesse_buchung.vf_konto
+        #     and self.gegen_konto == original_finesse_buchung.vf_gegen_konto
+        #     and self.betrag == original_finesse_buchung.vf_betrag):
+        #     return True
+        # # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
+        # if (not original_finesse_buchung.has_steuer
+        #     and (self.konto == original_finesse_buchung.vf_gegen_konto
+        #          and self.gegen_konto == original_finesse_buchung.vf_konto
+        #          and self.betrag == -original_finesse_buchung.vf_betrag)
+        #     ):
+        #     return True
+        return False
+
+    def validate_for_original_finesse_buchung_alt(self, original_finesse_buchung):
+        if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
+            assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
+            return False
+
         if original_finesse_buchung.steuerfall:
             if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
                 return False
@@ -259,17 +399,6 @@ class VF_Buchung:
             if self.matches_finesse_buchung(original_finesse_buchung):
                 return True
 
-        # if (self.konto == original_finesse_buchung.vf_konto
-        #     and self.gegen_konto == original_finesse_buchung.vf_gegen_konto
-        #     and self.betrag == original_finesse_buchung.vf_betrag):
-        #     return True
-        # # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
-        # if (not original_finesse_buchung.has_steuer
-        #     and (self.konto == original_finesse_buchung.vf_gegen_konto
-        #          and self.gegen_konto == original_finesse_buchung.vf_konto
-        #          and self.betrag == -original_finesse_buchung.vf_betrag)
-        #     ):
-        #     return True
         return False
 
     def matches_finesse_buchung(self, other_buchung):
@@ -392,6 +521,7 @@ class VF_Buchung:
 
         # Initialisieren einer Finesse-Buchung mit den Werten der VF-Buchung.
         result = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
+        result.kern_buchung = copy.copy(self.kern_buchung)
 
         # Beträge
         betrag_brutto = self.betrag if konto_im_haben else -self.betrag
@@ -455,6 +585,7 @@ class VF_Buchung:
 
         # Initialisieren einer Finesse-Buchung mit den Werten der ersten Finesse-Buchung ohne Beträge.
         result = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
+        result.kern_buchung = copy.copy(self.kern_buchung)  #TODO: not finished
         result.vf_nr = eine_finesse_buchung.vf_nr
         result.datum = eine_finesse_buchung.datum
         result.buchungstext = eine_finesse_buchung.buchungstext

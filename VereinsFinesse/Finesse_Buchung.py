@@ -8,6 +8,7 @@ import decimal
 from decimal import Decimal
 import Configuration
 import CheckDigit
+import Kern_Buchung
 import VF_Buchung
 
 finesse_journal_for_import_from_vf = u'Vereinsflieger-Import'
@@ -68,6 +69,8 @@ class Finesse_Buchung:
         self.steuerfall = None
         self.vf_konto_ist_konto_haben = None
 
+        self.kern_buchung = None
+
         # Die VF-Buchung, von der diese bei einem früheren Abgleich importiert wurde.
         self.original_vf_buchung = None
         # VF-Buchung, die von dieser bei einem früheren Abgleich kopiert wurde.
@@ -93,6 +96,10 @@ class Finesse_Buchung:
                 self.fehler_beschreibung = u'Falsche Prüfziffer für VF-Nr in Belegnummer 2({0})'.format(beleg2_text)
                 return False
             self.vf_nr = int(vf_nr_text)
+
+        self.kern_buchung = self.kern_buchung_from_finesse_export(value_dict);
+        if not self.kern_buchung:
+            return False
 
         self.datum = value_dict[u'Belegdatum']
         self.buchungstext = value_dict[u'Buchungs-Text']
@@ -151,6 +158,57 @@ class Finesse_Buchung:
 
         return True
 
+    def kern_buchung_from_finesse_export(self, value_dict):
+        kern_buchung = Kern_Buchung.Kern_Buchung()
+
+        kern_buchung.datum = value_dict[u'Belegdatum']
+        kern_buchung.buchungstext = value_dict[u'Buchungs-Text']
+        kern_buchung.konto_soll = self.konfiguration.konto_from_finesse_konto(int(value_dict[u'Konto Soll']))
+        kern_buchung.konto_soll_name = value_dict[u'Bezeichnung Konto Soll']
+        kern_buchung.konto_haben = self.konfiguration.konto_from_finesse_konto(int(value_dict[u'Konto Haben']))
+        kern_buchung.konto_haben_name = value_dict[u'Bezeichnung Konto Haben']
+
+        kern_buchung.kostenstelle = int(value_dict[u'Kostenrechnung 1'])
+        # Finesse schreibt "000000000" für leere Kostenstellen.
+        if kern_buchung.kostenstelle == 0:
+            kern_buchung.kostenstelle = None
+
+        kern_buchung.betrag_soll = decimal_with_decimalcomma(value_dict[u'Betrag Soll'])
+        kern_buchung.betrag_haben = decimal_with_decimalcomma(value_dict[u'Betrag Haben'])
+
+        # Finesse exportiert '0' für 'kein Konto'
+        steuer_konto = int(value_dict[u'Steuerkonto'])
+        steuercode_text = value_dict[u'Steuercode']
+        if len(steuercode_text) > 0:
+            steuercode = int(steuercode_text)
+            kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
+            if not kern_buchung.steuerfall:
+                self.fehler_beschreibung = u'Unbekannter Steuercode ({0})'.format(steuercode)
+                return None
+
+            # Das Steuerkonto aus Finesse muss zum Steuercode passen.
+            if steuer_konto != kern_buchung.steuerfall.konto_finesse:
+                self.fehler_beschreibung = (u'Steuerkonto ({0}) aus Finesse passt nicht zum Steuercode ({1})'
+                                            .format(steuer_konto, steuercode))
+                return None
+
+            kern_buchung.steuer_konto = steuer_konto
+            kern_buchung.steuer_konto_name = value_dict[u'Bezeichnung Steuerkonto']
+            kern_buchung.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
+            kern_buchung.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
+        else:
+            # Kein Steuercode angegeben, dann müssen das übrige Steuerzeugs leer oder 0 sein.
+            if (   steuer_konto != 0
+                or decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll']) != Decimal(0)
+                or decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben']) != Decimal(0)):
+                self.fehler_beschreibung = u'Kein Steuercode, aber andere Steuerangaben sind nicht alle 0'
+                return None
+
+        kern_buchung.rechnungsnummer = value_dict[u'Rechnungsnummer']   # Die Rechnungs"nummer" kann beliebiger Text sein
+        #TODO: kern_buchung.belegnummer
+
+        return kern_buchung
+
     @property
     def konto_haben_for_vf(self):
         return self.konfiguration.vf_konto_from_finesse_konto(self.konto_haben)
@@ -190,6 +248,14 @@ class Finesse_Buchung:
         self.prepare_for_vf()
         # Start with an empty VF_Buchung
         result = VF_Buchung.VF_Buchung(self.konfiguration)
+
+        result.kern_buchung = copy.copy(self.kern_buchung)
+        result.kern_buchung.buchungstext = u'Storno wegen Löschung im VF: {0}'.format(self.buchungstext)
+        result.kern_buchung.betrag_soll = Decimal(0)
+        result.kern_buchung.betrag_haben = Decimal(0)
+        result.kern_buchung.steuer_betrag_soll = Decimal(0)
+        result.kern_buchung.steuer_betrag_haben = Decimal(0)
+
         result.vf_nr = self.vf_nr
         result.datum = self.datum
         result.konto = self.konto_haben
@@ -238,6 +304,7 @@ class Finesse_Buchung:
             return None
 
         result = VF_Buchung.VF_Buchung(self.konfiguration)
+        result.kern_buchung = copy.copy(self.kern_buchung)
 
         # Der Normalfall ist, das Habenkonto auf 'Konto' im VF abzubilden. Bei positivem Betrag wird dieses Konto
         # vom VF als Habenkonto angezeigt.

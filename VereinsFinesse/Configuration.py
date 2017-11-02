@@ -19,9 +19,15 @@ class Konfiguration:
         self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
         self.konten_mit_kostenstelle = self.read_optional_list_from_config(u'konten_mit_kostenstelle')
         self.vf_konten_die_kostenstelle_ignorieren = self.read_optional_list_from_config(u'vf_konten_die_kostenstelle_ignorieren')
+        self.konten_die_kostenstelle_ignorieren = self.read_optional_list_from_config(u'konten_die_kostenstelle_ignorieren')
 
         self.konten_nummern_vf_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_finesse')
         self.konten_nummern_finesse_nach_vf = self.read_optional_dictionary_from_config(u'konten_nummern_finesse_nach_vf')
+
+        self.konten_nummern_vf_nach_abgleich = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_abgleich')
+        self.konten_nummern_abgleich_nach_vf = self.read_optional_dictionary_from_config(u'konten_nummern_abgleich_nach_vf')
+        self.konten_nummern_finesse_nach_abgleich = self.read_optional_dictionary_from_config(u'konten_nummern_finesse_nach_abgleich')
+        self.konten_nummern_abgleich_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_abgleich_nach_finesse')
 
     def read_optional_list_from_config(self, key):
         # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
@@ -48,6 +54,26 @@ class Konfiguration:
         if finesse_konto in self.konten_nummern_finesse_nach_vf:
             return self.konten_nummern_finesse_nach_vf[finesse_konto]
         return finesse_konto
+
+    def konto_from_vf_konto(self, vf_konto):
+        if vf_konto in self.konten_nummern_vf_nach_abgleich:
+            return self.konten_nummern_vf_nach_abgleich[vf_konto]
+        return vf_konto
+
+    def vf_konto_from_konto(self, konto):
+        if konto in self.konten_nummern_abgleich_nach_vf:
+            return self.konten_nummern_abgleich_nach_vf[konto]
+        return konto
+
+    def konto_from_finesse_konto(self, finesse_konto):
+        if finesse_konto in self.konten_nummern_finesse_nach_abgleich:
+            return self.konten_nummern_finesse_nach_abgleich[finesse_konto]
+        return finesse_konto
+
+    def finesse_konto_from_konto(self, konto):
+        if konto in self.konten_nummern_abgleich_nach_finesse:
+            return self.konten_nummern_abgleich_nach_finesse[konto]
+        return konto
 
 
 class Steuerfall(yaml.YAMLObject):
@@ -80,6 +106,18 @@ class Steuerfall(yaml.YAMLObject):
             return not self.ust_satz or self.ust_satz == Decimal(0)
         return (self.art == vf_steuerfall.art
                 and self.ust_satz == vf_steuerfall.ust_satz)
+
+def sind_steuerfaelle_aequivalent(steuerfall1, steuerfall2):
+    if steuerfall1 == steuerfall2:
+        return True
+    # In Finesse haben wir auch Steuercodes mit -satz 0. Diese können im VF nicht unterschieden werden.
+    #TODO: zur Vereinfachung einen Null-Steuersatz einführen?
+    if not steuerfall1:
+        return not steuerfall2.ust_satz or steuerfall2.ust_satz == Decimal(0)
+    if not steuerfall2:
+        return not steuerfall1.ust_satz or steuerfall1.ust_satz == Decimal(0)
+    return (steuerfall1.art == steuerfall2.art
+            and steuerfall1.ust_satz == steuerfall2.ust_satz)
 
 class SteuerConfiguration:
 
