@@ -207,6 +207,8 @@ class Finesse_Buchung:
         kern_buchung.rechnungsnummer = value_dict[u'Rechnungsnummer']   # Die Rechnungs"nummer" kann beliebiger Text sein
         #TODO: kern_buchung.belegnummer
 
+        kern_buchung.check_kostenstelle(self.konfiguration)
+
         return kern_buchung
 
     @property

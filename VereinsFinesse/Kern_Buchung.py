@@ -31,21 +31,31 @@ class Kern_Buchung:
         self.rechnungsnummer = None
         self.belegnummer = None
 
-    def tausche_konten(self):
-        if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
-            pass
+    def check_kostenstelle(self, konfiguration):
+        """
+        :param konfiguration: Configuration.Konfiguration
+        """
+        assert konfiguration
 
-        temp_konto = self.konto_soll
-        self.konto_soll = self.konto_haben
-        self.konto_haben = temp_konto
+        if (not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll)
+           and not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben)):
+            self.kostenstelle = None
 
-        temp_betrag = self.betrag_soll
-        self.betrag_soll = -self.betrag_haben
-        self.betrag_haben = -temp_betrag
-
-        temp_betrag = self.steuer_betrag_soll
-        self.steuer_betrag_soll = -self.steuer_betrag_haben
-        self.steuer_betrag_haben = -temp_betrag
+    # def tausche_konten(self):
+    #     if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
+    #         pass
+    #
+    #     temp_konto = self.konto_soll
+    #     self.konto_soll = self.konto_haben
+    #     self.konto_haben = temp_konto
+    #
+    #     temp_betrag = self.betrag_soll
+    #     self.betrag_soll = -self.betrag_haben
+    #     self.betrag_haben = -temp_betrag
+    #
+    #     temp_betrag = self.steuer_betrag_soll
+    #     self.steuer_betrag_soll = -self.steuer_betrag_haben
+    #     self.steuer_betrag_haben = -temp_betrag
 
     def buchung_mit_getauschten_konten(self):
         if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
@@ -72,6 +82,8 @@ class Kern_Buchung:
         if not Configuration.sind_steuerfaelle_aequivalent(self.steuerfall, other_buchung.steuerfall):
             return False
 
+        if self.kostenstelle != other_buchung.kostenstelle:
+            return False
         if self.konto_soll != other_buchung.konto_soll:
             return False
         if self.konto_haben != other_buchung.konto_haben:

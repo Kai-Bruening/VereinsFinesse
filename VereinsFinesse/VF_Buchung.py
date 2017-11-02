@@ -218,20 +218,20 @@ class VF_Buchung:
             kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_vf_steuerkonto_and_steuersatz(steuer_konto, steuer_satz)
             if not kern_buchung.steuerfall:
                 self.fehler_beschreibung = u'Kombination aus Steuerkonto ({0}) und Steuersatz ({1}) unbekannt'.format(steuer_konto, steuer_satz)
-                return False
+                return None
 
             # Der Steuersatz aus dem Vereinsflieger muss zum Steuerkonto passen.
             if (steuer_satz != kern_buchung.steuerfall.ust_satz
                 and not (steuer_satz == Decimal(0) and not kern_buchung.steuerfall.ust_satz)):
                 self.fehler_beschreibung = (u'MwSt-Satz ({0}) aus Vereinsflieger passt nicht zum dem des Steuerkontos ({1})'
                                             .format(steuer_satz, kern_buchung.steuerfall.ust_satz))
-                return False
+                return None
             kern_buchung.steuer_konto = steuer_konto
         else:
             # Kein Steuerkonto angegeben, dann muss der MwSt-Satz 0 sein (oder leer).
             if len(steuer_satz_text) > 0 and int(steuer_satz_text) != 0:
                 self.fehler_beschreibung = u'MwSt-Satz > 0 ({0}) ohne Steuerkonto'.format(steuer_satz_text)
-                return False
+                return None
 
         # Wir nehmen immer die Zuordnung, die zu positiven Beträgen in der Buchung führt, so wie es VF anzeigt.
         # Wenn der Betrag 0 ist, wird das Konto zum Habenkonto.
@@ -248,7 +248,7 @@ class VF_Buchung:
                 steuerart = kern_buchung.steuerfall.art
             if steuerart == Configuration.steuerart.Keine:
                 self.fehler_beschreibung = u'Ungleiche Beträge ohne Angabe einer Steuerart'
-                return False
+                return None
             f_konto_ist_haben = konto_ist_brutto if steuerart == Configuration.steuerart.Vorsteuer else not konto_ist_brutto
 
             betrag_steuer_ins_haben = steuerart == Configuration.steuerart.Umsatzsteuer
@@ -270,6 +270,8 @@ class VF_Buchung:
 
         kern_buchung.rechnungsnummer = value_dict[u'Abrechnungsnr']   # Die Rechnungs"nummer" kann beliebiger Text sein
         #TODO: kern_buchung.belegnummer
+
+        kern_buchung.check_kostenstelle(self.konfiguration)
 
         return kern_buchung
 
