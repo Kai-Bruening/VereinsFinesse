@@ -69,6 +69,11 @@ class CompleteTestCases (unittest.TestCase):
     def test_kontentausch_mit_steuer(self):
         self.do_test_in_directory(u'Kontentausch mit Steuer')
 
+    def test_null_buchung_im_vf(self):
+        # In VF sind Buchungen mit Betrag 0 möglich. Finesse mag das nicht, also müssen solche Buchungen ignoriert
+        # werden.
+        self.do_test_in_directory(u'Null-Buchung im VF')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

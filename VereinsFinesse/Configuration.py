@@ -21,11 +21,7 @@ class Konfiguration:
         self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(u'ausgenommene_konten_vf_nach_finesse')
         self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
         self.konten_mit_kostenstelle = self.read_optional_list_from_config(u'konten_mit_kostenstelle')
-        self.vf_konten_die_kostenstelle_ignorieren = self.read_optional_list_from_config(u'vf_konten_die_kostenstelle_ignorieren')
         self.konten_die_kostenstelle_ignorieren = self.read_optional_list_from_config(u'konten_die_kostenstelle_ignorieren')
-
-        self.konten_nummern_vf_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_finesse')
-        self.konten_nummern_finesse_nach_vf = self.read_optional_dictionary_from_config(u'konten_nummern_finesse_nach_vf')
 
         self.konten_nummern_vf_nach_abgleich = self.read_optional_dictionary_from_config(u'konten_nummern_vf_nach_abgleich')
         self.konten_nummern_abgleich_nach_vf = self.read_optional_dictionary_from_config(u'konten_nummern_abgleich_nach_vf')
@@ -47,16 +43,6 @@ class Konfiguration:
         if key in self.config_dict:
             dict = self.config_dict[key]
         return dict
-
-    def finesse_konto_from_vf_konto(self, vf_konto):
-        if vf_konto in self.konten_nummern_vf_nach_finesse:
-            return self.konten_nummern_vf_nach_finesse[vf_konto]
-        return vf_konto
-
-    def vf_konto_from_finesse_konto(self, finesse_konto):
-        if finesse_konto in self.konten_nummern_finesse_nach_vf:
-            return self.konten_nummern_finesse_nach_vf[finesse_konto]
-        return finesse_konto
 
     def konto_from_vf_konto(self, vf_konto):
         if vf_konto in self.konten_nummern_vf_nach_abgleich:

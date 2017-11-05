@@ -344,17 +344,17 @@ class VF_Buchung:
         #     and test_buchung.betrag == -self.betrag):
         #     return True
 
-        alt = self.validate_for_original_finesse_buchung_alt(original_finesse_buchung)
+        # alt = self.validate_for_original_finesse_buchung_alt(original_finesse_buchung)
 
         if self.kern_buchung.matches_buchung(original_finesse_buchung.kern_buchung):
-            if not alt:
-                pass
+            # if not alt:
+            #     pass
             return True
 
         test_buchung = self.kern_buchung.buchung_mit_getauschten_konten()
         neu = test_buchung.matches_buchung(original_finesse_buchung.kern_buchung)
-        if alt != neu:
-            pass
+        # if alt != neu:
+        #     pass
         return neu
 
 
@@ -385,45 +385,45 @@ class VF_Buchung:
         #     return True
         return False
 
-    def validate_for_original_finesse_buchung_alt(self, original_finesse_buchung):
-        if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
-            assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
-            return False
+    # def validate_for_original_finesse_buchung_alt(self, original_finesse_buchung):
+    #     if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
+    #         assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
+    #         return False
+    #
+    #     if original_finesse_buchung.steuerfall:
+    #         if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
+    #             return False
+    #     else:
+    #         if self.steuerfall:
+    #             return False
+    #
+    #     if self.matches_finesse_buchung(original_finesse_buchung):
+    #         return True
+    #
+    #     if self.versuche_konten_tausch():
+    #         if self.matches_finesse_buchung(original_finesse_buchung):
+    #             return True
+    #
+    #     return False
 
-        if original_finesse_buchung.steuerfall:
-            if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
-                return False
-        else:
-            if self.steuerfall:
-                return False
-
-        if self.matches_finesse_buchung(original_finesse_buchung):
-            return True
-
-        if self.versuche_konten_tausch():
-            if self.matches_finesse_buchung(original_finesse_buchung):
-                return True
-
-        return False
-
-    def matches_finesse_buchung(self, other_buchung):
-        """
-         :param other_buchung:Finesse_Buchung
-         :rtype: bool
-         """
-        if self.konto_soll != other_buchung.konto_soll_for_vf:
-            return False
-        if self.konto_haben != other_buchung.konto_haben_for_vf:
-            return False
-        if self.betrag_soll != other_buchung.betrag_soll:
-            return False
-        if self.betrag_haben != other_buchung.betrag_haben:
-            return False
-        if self.steuer_betrag_soll != other_buchung.steuer_betrag_soll:
-            return False
-        if self.steuer_betrag_haben != other_buchung.steuer_betrag_haben:
-            return False
-        return True
+    # def matches_finesse_buchung(self, other_buchung):
+    #     """
+    #      :param other_buchung:Finesse_Buchung
+    #      :rtype: bool
+    #      """
+    #     if self.konto_soll != other_buchung.konto_soll_for_vf:
+    #         return False
+    #     if self.konto_haben != other_buchung.konto_haben_for_vf:
+    #         return False
+    #     if self.betrag_soll != other_buchung.betrag_soll:
+    #         return False
+    #     if self.betrag_haben != other_buchung.betrag_haben:
+    #         return False
+    #     if self.steuer_betrag_soll != other_buchung.steuer_betrag_soll:
+    #         return False
+    #     if self.steuer_betrag_haben != other_buchung.steuer_betrag_haben:
+    #         return False
+    #     return True
 
     def versuche_konten_tausch(self):
         # Konten können nur in Buchungen ohne Steuer getauscht werden.
@@ -541,13 +541,16 @@ class VF_Buchung:
         """
 
         if self.kern_buchung.is_null:
-            # Die Buchung im VF wurde auf 0 gesetzt, das ist ein entarteter Fall für die Kontenzuordnung. Daher
-            # wird die Zuordnung von den existierenden Finesse Buchungen genommen.
-            export_buchung = self.kern_buchung_zum_stornieren_von_finesse_buchungen(existierende_finesse_buchungen)
-            export_buchung.datum = self.kern_buchung.datum
-            export_buchung.buchungstext = self.kern_buchung.buchungstext
-            export_buchung.rechnungsnummer = self.kern_buchung.rechnungsnummer
-            export_buchung.belegnummer = self.kern_buchung.belegnummer
+            if existierende_finesse_buchungen:
+                # Die Buchung im VF wurde auf 0 gesetzt, das ist ein entarteter Fall für die Kontenzuordnung. Daher
+                # wird die Zuordnung von den existierenden Finesse Buchungen genommen.
+                export_buchung = self.kern_buchung_zum_stornieren_von_finesse_buchungen(existierende_finesse_buchungen)
+                export_buchung.datum = self.kern_buchung.datum
+                export_buchung.buchungstext = self.kern_buchung.buchungstext
+                export_buchung.rechnungsnummer = self.kern_buchung.rechnungsnummer
+                export_buchung.belegnummer = self.kern_buchung.belegnummer
+            else:
+                export_buchung = copy.copy(self.kern_buchung)
 
         else:
             export_buchung = copy.copy(self.kern_buchung)

@@ -40,18 +40,6 @@ konten_mit_kostenstelle:
 
 # Konten, die in Finesse Buchungen mit Kostenstelle auftauchen können, im VF aber ohne Kostenstelle
 # geführt werden.
-vf_konten_die_kostenstelle_ignorieren:
-  # Buchungen aus Finesse mit einem Steuerkonto als explizitem Konto können eine Kostenstelle enthalten.
-  # Das wollen wir im VF nicht abbilden (der Stand der Steuerkonten in VF ist eh bedeutungslos).
-  - !Kontenbereich
-    start:          1599
-    ende:           1599
-  - !Kontenbereich
-    start:          1879
-    ende:           1879
-
-# Konten, die in Finesse Buchungen mit Kostenstelle auftauchen können, im VF aber ohne Kostenstelle
-# geführt werden.
 konten_die_kostenstelle_ignorieren:
   # Buchungen aus Finesse mit einem Steuerkonto als explizitem Konto können eine Kostenstelle enthalten.
   # Das wollen wir im VF nicht abbilden (der Stand der Steuerkonten in VF ist eh bedeutungslos).
@@ -63,31 +51,12 @@ konten_die_kostenstelle_ignorieren:
     ende:           1879
 
 # Einige Kontennummern unterscheiden sich zwischen Finesse und VF.
-konten_nummern_vf_nach_finesse:
-  # (hoffentlich) vorübergehender Fix für das Dorian Immler Kontenproblem
-  99900: 11947
 
 konten_nummern_vf_nach_abgleich:
   # (hoffentlich) vorübergehender Fix für das Dorian Immler Kontenproblem
   99900: 11947
 
 #konten_nummern_abgleich_nach_vf:
-
-konten_nummern_finesse_nach_vf:
-  # Die folgenden Zuordnungen werden aktiv, wenn ein Buchungssatz ein Steuerkonto als Soll- oder
-  # Habenkonto enthält und in den VF übertragen wird. Ein seltener aber möglicher Fall.
-
-  # Alle Vorsteuerkonten in Finesse werden auf das eine VF-Konto für Vorsteuer gemappt.
-  1576: 1599
-  1579: 1599
-  1569: 1599
-  1566: 1599
-  1570: 1599
-
-  # Alle Umsatzsteuerkonten in Finesse werden auf das eine VF-Konto für Umsatzsteuer gemappt.
-  1775: 1879
-  1870: 1879
-  1876: 1879
 
 konten_nummern_finesse_nach_abgleich:
   # Die folgenden Zuordnungen werden aktiv, wenn ein Buchungssatz ein Steuerkonto als Soll- oder

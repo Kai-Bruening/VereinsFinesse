@@ -212,26 +212,6 @@ class Finesse_Buchung:
 
         return kern_buchung
 
-    @property
-    def konto_haben_for_vf(self):
-        return self.konfiguration.vf_konto_from_finesse_konto(self.konto_haben)
-
-    @property
-    def konto_soll_for_vf(self):
-        return self.konfiguration.vf_konto_from_finesse_konto(self.konto_soll)
-
-    @property
-    def vf_konto(self):
-        return self.konto_haben_for_vf if self.vf_konto_ist_konto_haben else self.konto_soll_for_vf
-
-    @property
-    def vf_gegen_konto(self):
-        return self.konto_soll_for_vf if self.vf_konto_ist_konto_haben else self.konto_haben_for_vf
-
-    @property
-    def vf_betrag(self):
-        return self.betrag_haben if self.vf_konto_ist_konto_haben else -self.betrag_soll
-
     def validate_for_original_vf_buchung(self, original_vf_buchung):
         # Buchungen im VF können jederzeit vom Betrag her geändert werden, aber die Konten und andere
         # Daten müssen bleiben.
@@ -289,25 +269,25 @@ class Finesse_Buchung:
         :rtype: bool
         """
         # Kostenstelle einem Konto zuordnen:
-        assert not self.konto_haben_kostenstelle
-        assert not self.konto_soll_kostenstelle
-
-        if not self.kostenstelle:
-            return True
-
-        if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
-            if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
-                self.fehler_beschreibung = u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
-                return False
-            self.konto_soll_kostenstelle = self.kostenstelle
-        elif self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
-            self.konto_haben_kostenstelle = self.kostenstelle
-        elif (self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll_for_vf)
-            or self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben_for_vf)):
-            pass
-        else:
-            self.fehler_beschreibung = u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
-            return False
+        # assert not self.konto_haben_kostenstelle
+        # assert not self.konto_soll_kostenstelle
+        #
+        # if not self.kostenstelle:
+        #     return True
+        #
+        # if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
+        #     if self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+        #         self.fehler_beschreibung = u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
+        #         return False
+        #     self.konto_soll_kostenstelle = self.kostenstelle
+        # elif self.konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+        #     self.konto_haben_kostenstelle = self.kostenstelle
+        # elif (self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll_for_vf)
+        #     or self.konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben_for_vf)):
+        #     pass
+        # else:
+        #     self.fehler_beschreibung = u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
+        #     return False
 
         return True
 
