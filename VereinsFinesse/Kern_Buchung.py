@@ -70,6 +70,8 @@ class Kern_Buchung:
 
     @property
     def is_null(self):
+        # Buchungen im VF mit Betrag = 0 sind möglich und entstehen z.B. beim Löschen von Rechnungen.
+        # Die Zuordnung der Konten auf Soll und Haben nach dem Vorzeichen ist dann nicht möglich.
         return self.betrag_soll == Decimal(0) and self.betrag_haben == Decimal(0)
 
     def buchung_mit_getauschten_konten(self):
@@ -128,6 +130,26 @@ class Kern_Buchung:
         if self.steuer_betrag_haben != other_buchung.steuer_betrag_haben:
             return False
         return True
+
+    def ist_ein_konto_enthalten_in(self, konten_liste):
+        return konten_liste.enthaelt_konto(self.konto_haben) or konten_liste.enthaelt_konto(self.konto_soll)
+
+    def ist_storno_gegen(self, andere_buchung):
+        if self.matches_konten_of_buchung(andere_buchung):
+            # Wenn die Konten gleich sind, müssen die Beträge entgegengesetzt sein.
+            if (andere_buchung.betrag_soll == -self.betrag_soll and
+                        andere_buchung.betrag_haben == -self.betrag_haben and
+                        andere_buchung.steuer_betrag_soll == -self.steuer_betrag_soll and
+                        andere_buchung.steuer_betrag_haben == -self.steuer_betrag_haben):
+                return True
+        elif self.anti_matches_konten_of_buchung(andere_buchung):
+            # Andernfalls müssen die Beträge bei vertauschten Konten gleich sein.
+            if (andere_buchung.betrag_soll == self.betrag_haben and
+                        andere_buchung.betrag_haben == self.betrag_soll and
+                        andere_buchung.steuer_betrag_soll == self.steuer_betrag_haben and
+                        andere_buchung.steuer_betrag_haben == self.steuer_betrag_soll):
+                return True
+        return False
 
     def fehler_beschreibung_fuer_export_nach_vf(self, konfiguration):
         """

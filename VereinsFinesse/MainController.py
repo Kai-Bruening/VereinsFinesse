@@ -151,13 +151,11 @@ class MainController:
             self.protokoll_stream.writelines([u"Fehler beim Lesen der Konfiguration von „{0}“: {1}".format(stream.name, error), os.linesep])
             raise StopRun()
 
-    def is_buchung_exported_to_finesse(self, buchung):
-        return (not self.konfiguration.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.konto)
-                and not self.konfiguration.ausgenommene_konten_vf_nach_finesse.enthaelt_konto(buchung.gegen_konto))
+    def is_buchung_exported_to_finesse(self, vf_buchung):
+        return not vf_buchung.kern_buchung.ist_ein_konto_enthalten_in(self.konfiguration.ausgenommene_konten_vf_nach_finesse)
 
     def is_buchung_exported_to_vf(self, finesse_buchung):
-        return (self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_haben)
-                or self.konfiguration.konten_finesse_nach_vf.enthaelt_konto(finesse_buchung.konto_soll))
+        return finesse_buchung.kern_buchung.ist_ein_konto_enthalten_in(self.konfiguration.konten_finesse_nach_vf)
 
     def vf_export_path(self):
         vf_path = self.parsed_args.vf_export
