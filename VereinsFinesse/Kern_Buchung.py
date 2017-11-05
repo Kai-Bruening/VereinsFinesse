@@ -8,6 +8,7 @@ import decimal
 from decimal import Decimal
 import Configuration
 import CheckDigit
+import VF_Buchung
 
 
 class Kern_Buchung:
@@ -24,8 +25,6 @@ class Kern_Buchung:
         self.betrag_soll = None
         self.betrag_haben = None
         self.steuerfall = None
-        self.steuer_konto = None
-        self.steuer_konto_name = None
         self.steuer_betrag_soll = Decimal(0)
         self.steuer_betrag_haben = Decimal(0)
         self.rechnungsnummer = None
@@ -97,3 +96,51 @@ class Kern_Buchung:
         if self.steuer_betrag_haben != other_buchung.steuer_betrag_haben:
             return False
         return True
+
+    def dict_for_export_to_vf(self, konfiguration):
+        """
+        :rtype: dict
+        """
+
+        # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
+        result = {}
+        result[u'Datum'] = self.datum
+        result[u'Buchungstext'] = self.buchungstext
+
+        # Der Normalfall ist, das Habenkonto auf 'Konto' im VF abzubilden. Bei positivem Betrag wird dieses Konto
+        # vom VF als Habenkonto angezeigt.
+        konto_im_haben = True
+        if self.steuerfall:
+            # Der Bruttobetrag muss immer auf das Konto gebucht werden, der Nettobetrag auf das Gegenkonto.
+            if abs (self.betrag_soll) > abs (self.betrag_haben):
+                konto_im_haben = False
+
+        # Notiz: früher haben wir Mitgliedskonten möglichst dem "Konto" zugeordnet, damit sie im Journal des VF
+        # möglichst links stehen. Das bringt seit der Umstellung auf Soll- und Haben-Darstellung nichts mehr und
+        # ist daher weg.
+
+        if konto_im_haben:
+            konto = self.konto_haben
+            gegen_konto = self.konto_soll
+            betrag = self.betrag_haben
+        else:
+            konto = self.konto_soll
+            gegen_konto = self.konto_haben
+            betrag = -self.betrag_soll
+
+        # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
+        result[u'Konto']      = self.konto_for_vf_export(konto, konfiguration)
+        result[u'Gegenkonto'] = self.konto_for_vf_export(gegen_konto, konfiguration)
+        result[u'Betrag']     = betrag
+
+        if self.steuerfall:
+            result[u'Steuerkonto'] = konfiguration.steuer_configuration.vf_steuer_konto_for_steuerfall(self.steuerfall)
+            result[u'Mwst'] = self.steuerfall.ust_satz
+
+        return result
+
+    def konto_for_vf_export(self, konto, konfiguration):
+        kostenstelle = self.kostenstelle
+        if not konfiguration.konten_mit_kostenstelle.enthaelt_konto(konto):
+            kostenstelle = None
+        return VF_Buchung.vf_format_konto(konfiguration.vf_konto_from_konto(konto), kostenstelle)

@@ -226,11 +226,13 @@ class VF_Buchung:
                 self.fehler_beschreibung = (u'MwSt-Satz ({0}) aus Vereinsflieger passt nicht zum dem des Steuerkontos ({1})'
                                             .format(steuer_satz, kern_buchung.steuerfall.ust_satz))
                 return None
-            kern_buchung.steuer_konto = steuer_konto
         else:
             # Kein Steuerkonto angegeben, dann muss der MwSt-Satz 0 sein (oder leer).
             if len(steuer_satz_text) > 0 and int(steuer_satz_text) != 0:
                 self.fehler_beschreibung = u'MwSt-Satz > 0 ({0}) ohne Steuerkonto'.format(steuer_satz_text)
+                return None
+            if betrag_konto != -betrag_gegen_konto:
+                self.fehler_beschreibung = u'Buchung ohne Steuer hat differierende Soll- und Habenbeträge'
                 return None
 
         # Wir nehmen immer die Zuordnung, die zu positiven Beträgen in der Buchung führt, so wie es VF anzeigt.

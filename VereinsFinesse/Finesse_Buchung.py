@@ -192,8 +192,6 @@ class Finesse_Buchung:
                                             .format(steuer_konto, steuercode))
                 return None
 
-            kern_buchung.steuer_konto = steuer_konto
-            kern_buchung.steuer_konto_name = value_dict[u'Bezeichnung Steuerkonto']
             kern_buchung.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
             kern_buchung.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
         else:
@@ -202,6 +200,9 @@ class Finesse_Buchung:
                 or decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll']) != Decimal(0)
                 or decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben']) != Decimal(0)):
                 self.fehler_beschreibung = u'Kein Steuercode, aber andere Steuerangaben sind nicht alle 0'
+                return None
+            if kern_buchung.betrag_soll != kern_buchung.betrag_haben:
+                self.fehler_beschreibung = u'Buchung ohne Steuer hat differierende Soll- und Habenbeträge'
                 return None
 
         kern_buchung.rechnungsnummer = value_dict[u'Rechnungsnummer']   # Die Rechnungs"nummer" kann beliebiger Text sein
@@ -350,6 +351,22 @@ class Finesse_Buchung:
         result.vf_belegart = VF_Buchung.vf_belegart_for_import_from_finesse
         result.vf_belegnummer = CheckDigit.append_checkdigit(unicode(self.finesse_journalnummer))
 
+        return result
+
+    @property
+    def dict_for_export_to_vf(self):
+        """
+        :rtype: dict
+        """
+
+        assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
+
+        # if not self.prepare_for_vf():
+        #     return None
+
+        result = self.kern_buchung.dict_for_export_to_vf(self.konfiguration)
+        result[u'BelegArt'] = VF_Buchung.vf_belegart_for_import_from_finesse
+        result[u'BelegNr']  = CheckDigit.append_checkdigit(unicode(self.finesse_journalnummer))
         return result
 
     @property

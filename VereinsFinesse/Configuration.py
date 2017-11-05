@@ -3,10 +3,13 @@
 import yaml
 from decimal import Decimal
 
+
 def enum(**named_values):
     return type('Enum', (), named_values)
 
+
 steuerart = enum(Keine=u'keine', Vorsteuer=u'vorsteuer', Umsatzsteuer=u'umsatzsteuer')
+
 
 class Konfiguration:
 
@@ -107,6 +110,7 @@ class Steuerfall(yaml.YAMLObject):
         return (self.art == vf_steuerfall.art
                 and self.ust_satz == vf_steuerfall.ust_satz)
 
+
 def sind_steuerfaelle_aequivalent(steuerfall1, steuerfall2):
     if steuerfall1 == steuerfall2:
         return True
@@ -118,6 +122,7 @@ def sind_steuerfaelle_aequivalent(steuerfall1, steuerfall2):
         return not steuerfall1.ust_satz or steuerfall1.ust_satz == Decimal(0)
     return (steuerfall1.art == steuerfall2.art
             and steuerfall1.ust_satz == steuerfall2.ust_satz)
+
 
 class SteuerConfiguration:
 
@@ -157,6 +162,14 @@ class SteuerConfiguration:
         if steuercode not in self.steuerfall_by_code:
             return None
         return self.steuerfall_by_code[steuercode]
+
+    def vf_steuer_konto_for_steuerfall(self, steuerfall):
+        steuer_konto = None
+        if steuerfall.art == steuerart.Vorsteuer:
+            steuer_konto = self.vf_vorsteuer_konto
+        elif steuerfall.art == steuerart.Umsatzsteuer:
+            steuer_konto = self.vf_umsatzsteuer_konto
+        return steuer_konto
 
 
 class Kontenbereich(yaml.YAMLObject):

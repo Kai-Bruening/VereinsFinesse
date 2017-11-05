@@ -344,11 +344,13 @@ class MainController:
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr.itervalues():
             if not finesse_buchung.kopierte_vf_buchung and not finesse_buchung.fehler_beschreibung:
-                vf_buchung = finesse_buchung.vf_buchung_for_export()
-                if vf_buchung:
-                    result.append(vf_buchung)
-                else:
-                    self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
+                #TODO: validate finesse_buchung for export to VF
+                result.append(finesse_buchung)
+                # vf_buchung = finesse_buchung.vf_buchung_for_export()
+                # if vf_buchung:
+                #     result.append(vf_buchung)
+                # else:
+                #     self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
         return result
 
     def connectImportedFinesseBuchungen(self):
