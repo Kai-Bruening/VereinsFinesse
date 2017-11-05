@@ -324,106 +324,11 @@ class VF_Buchung:
             assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
             return False
 
-        # test_buchung = original_finesse_buchung.vf_buchung_for_export()
-        # if not test_buchung:
-        #     return False
-
-        # if (test_buchung.mwst_satz != self.mwst_satz
-        #     or test_buchung.steuer_konto != self.steuer_konto):
-        #     return False
-        #
-        # if (test_buchung.konto == self.konto
-        #     and test_buchung.gegen_konto == self.gegen_konto
-        #     and test_buchung.betrag == self.betrag):
-        #     return True
-        #
-        # # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
-        # if (not original_finesse_buchung.has_steuer
-        #     and test_buchung.konto == self.gegen_konto
-        #     and test_buchung.gegen_konto == self.konto
-        #     and test_buchung.betrag == -self.betrag):
-        #     return True
-
-        # alt = self.validate_for_original_finesse_buchung_alt(original_finesse_buchung)
-
         if self.kern_buchung.matches_buchung(original_finesse_buchung.kern_buchung):
-            # if not alt:
-            #     pass
             return True
 
         test_buchung = self.kern_buchung.buchung_mit_getauschten_konten()
-        neu = test_buchung.matches_buchung(original_finesse_buchung.kern_buchung)
-        # if alt != neu:
-        #     pass
-        return neu
-
-
-        # if original_finesse_buchung.steuerfall:
-        #     if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
-        #         return False
-        # else:
-        #     if self.steuerfall:
-        #         return False
-        #
-        # if self.matches_finesse_buchung(original_finesse_buchung):
-        #     return True
-        #
-        # if self.versuche_konten_tausch():
-        #     if self.matches_finesse_buchung(original_finesse_buchung):
-        #         return True
-
-        # if (self.konto == original_finesse_buchung.vf_konto
-        #     and self.gegen_konto == original_finesse_buchung.vf_gegen_konto
-        #     and self.betrag == original_finesse_buchung.vf_betrag):
-        #     return True
-        # # Die ersten Imports in VF haben ohne Steuer die Konten teilweise andersrum geordnet.
-        # if (not original_finesse_buchung.has_steuer
-        #     and (self.konto == original_finesse_buchung.vf_gegen_konto
-        #          and self.gegen_konto == original_finesse_buchung.vf_konto
-        #          and self.betrag == -original_finesse_buchung.vf_betrag)
-        #     ):
-        #     return True
-        return False
-
-    # def validate_for_original_finesse_buchung_alt(self, original_finesse_buchung):
-    #     if self.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
-    #         assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
-    #         return False
-    #
-    #     if original_finesse_buchung.steuerfall:
-    #         if not original_finesse_buchung.steuerfall.matches_vf_steuerfall(self.steuerfall):
-    #             return False
-    #     else:
-    #         if self.steuerfall:
-    #             return False
-    #
-    #     if self.matches_finesse_buchung(original_finesse_buchung):
-    #         return True
-    #
-    #     if self.versuche_konten_tausch():
-    #         if self.matches_finesse_buchung(original_finesse_buchung):
-    #             return True
-    #
-    #     return False
-
-    # def matches_finesse_buchung(self, other_buchung):
-    #     """
-    #      :param other_buchung:Finesse_Buchung
-    #      :rtype: bool
-    #      """
-    #     if self.konto_soll != other_buchung.konto_soll_for_vf:
-    #         return False
-    #     if self.konto_haben != other_buchung.konto_haben_for_vf:
-    #         return False
-    #     if self.betrag_soll != other_buchung.betrag_soll:
-    #         return False
-    #     if self.betrag_haben != other_buchung.betrag_haben:
-    #         return False
-    #     if self.steuer_betrag_soll != other_buchung.steuer_betrag_soll:
-    #         return False
-    #     if self.steuer_betrag_haben != other_buchung.steuer_betrag_haben:
-    #         return False
-    #     return True
+        return test_buchung.matches_buchung(original_finesse_buchung.kern_buchung)
 
     def versuche_konten_tausch(self):
         # Konten können nur in Buchungen ohne Steuer getauscht werden.
@@ -743,25 +648,6 @@ class VF_Buchung:
     @classmethod
     def fieldnames_for_export_to_vf(cls):
         return [u'Datum',u'Konto',u'Betrag',u'Gegenkonto',u'Steuerkonto',u'Mwst',u'Buchungstext',u'BelegArt',u'BelegNr']
-
-    # @property
-    # def dict_for_export_to_vf(self):
-    #     """
-    #     :rtype: dict
-    #     """
-    #     # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
-    #     result = {}
-    #     result[u'Datum'] = self.datum
-    #     result[u'Konto'] = vf_format_konto(self.konto, self.konto_kostenstelle)
-    #     result[u'Betrag'] = self.betrag
-    #     result[u'Gegenkonto'] = vf_format_konto(self.gegen_konto, self.gegen_konto_kostenstelle)
-    #     if self.has_steuer:
-    #         result[u'Steuerkonto'] = self.steuer_konto
-    #         result[u'Mwst'] = self.mwst_satz
-    #     result[u'Buchungstext'] = self.buchungstext
-    #     result[u'BelegArt'] = self.vf_belegart
-    #     result[u'BelegNr'] = self.vf_belegnummer
-    #     return result
 
 
 def vf_read_konto(dict_value):
