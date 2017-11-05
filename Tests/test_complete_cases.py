@@ -89,7 +89,7 @@ class CompleteTestCases (unittest.TestCase):
         controller.entferne_stornierte_finesse_buchungen()
 
         # Export for VF
-        self.handle_export_for_vf(test_dir, controller)
+        self.handle_export_to_vf(test_dir, controller)
 
         # Export for Finesse
         self.handle_export_for_finesse(test_dir, controller)
@@ -97,7 +97,7 @@ class CompleteTestCases (unittest.TestCase):
         # Fehlerhafte Buchungen
         self.handle_fehlerhafte_buchungen(test_dir, controller)
 
-    def handle_export_for_vf(self, test_dir, controller):
+    def handle_export_to_vf(self, test_dir, controller):
         expected_path = os.path.join(test_dir, u'vf_expected.csv')
         vf_export_list = controller.finesseBuchungenForExportToVF()
         if len(vf_export_list ) > 0:

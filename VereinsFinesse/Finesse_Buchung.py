@@ -273,6 +273,17 @@ class Finesse_Buchung:
         # result.vf_belegnummer = None
         return result
 
+    @property
+    def ist_valide_fuer_export_nach_vf(self):
+        """
+        :rtype: bool
+        """
+        fehler_beschreibung = self.kern_buchung.fehler_beschreibung_fuer_export_nach_vf(self.konfiguration)
+        if fehler_beschreibung is None:
+            return True
+        self.fehler_beschreibung = fehler_beschreibung
+        return False
+
     def prepare_for_vf(self):
         """
         :rtype: bool

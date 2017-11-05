@@ -97,6 +97,21 @@ class Kern_Buchung:
             return False
         return True
 
+    def fehler_beschreibung_fuer_export_nach_vf(self, konfiguration):
+        if not self.kostenstelle:
+            return None
+
+        # Bisher erlauben wir nur Buchungen, bei denen die Kostenstelle eindeutig zugeordnet werden kann.
+        if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
+            if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+                return u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
+        elif (not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben)
+            and not konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll)
+            and not konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben)):
+            return u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
+
+        return None
+
     def dict_for_export_to_vf(self, konfiguration):
         """
         :rtype: dict

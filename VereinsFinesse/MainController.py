@@ -217,7 +217,7 @@ class MainController:
             self.vf_buchungen.append(b) # alle importierten Buchungen werden hier gesammelt
             self.vf_buchungenByNr[b.vf_nr] = b
 
-    def exportFinesseBuchungenToVF(self, vf_buchungen, filehandle):
+    def exportFinesseBuchungenToVF(self, finesse_buchungen, filehandle):
         writer = UnicodeCSV.UnicodeDictWriter(filehandle,
                                    VF_Buchung.VF_Buchung.fieldnames_for_export_to_vf(),
                                    encoding="windows-1252",
@@ -226,8 +226,8 @@ class MainController:
                                    quoting=csv.QUOTE_MINIMAL,
                                    strict=True)
         writer.writeheader()
-        for vf_buchung in vf_buchungen:
-            writer.writerow(vf_buchung.dict_for_export_to_vf)
+        for finesse_buchung in finesse_buchungen:
+            writer.writerow(finesse_buchung .dict_for_export_to_vf)
 
 
     def import_finesse(self, path):
@@ -344,13 +344,10 @@ class MainController:
         result = []
         for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr.itervalues():
             if not finesse_buchung.kopierte_vf_buchung and not finesse_buchung.fehler_beschreibung:
-                #TODO: validate finesse_buchung for export to VF
-                result.append(finesse_buchung)
-                # vf_buchung = finesse_buchung.vf_buchung_for_export()
-                # if vf_buchung:
-                #     result.append(vf_buchung)
-                # else:
-                #     self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
+                if finesse_buchung.ist_valide_fuer_export_nach_vf:
+                    result.append(finesse_buchung)
+                else:
+                    self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
         return result
 
     def connectImportedFinesseBuchungen(self):
