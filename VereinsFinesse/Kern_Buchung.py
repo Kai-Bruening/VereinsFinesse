@@ -40,21 +40,37 @@ class Kern_Buchung:
            and not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben)):
             self.kostenstelle = None
 
-    # def tausche_konten(self):
-    #     if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
-    #         pass
-    #
-    #     temp_konto = self.konto_soll
-    #     self.konto_soll = self.konto_haben
-    #     self.konto_haben = temp_konto
-    #
-    #     temp_betrag = self.betrag_soll
-    #     self.betrag_soll = -self.betrag_haben
-    #     self.betrag_haben = -temp_betrag
-    #
-    #     temp_betrag = self.steuer_betrag_soll
-    #     self.steuer_betrag_soll = -self.steuer_betrag_haben
-    #     self.steuer_betrag_haben = -temp_betrag
+    @property
+    def konten_key(self):
+        """
+        :rtype: list
+       """
+        # Vertauschte Konten müssen den gleichen Schlüssel ergeben.
+        konto1 = self.konto_soll
+        konto2 = self.konto_haben
+        # Vertauschte Konten müssen den gleichen Schlüssel ergeben.
+        if konto1 > konto2:
+            temp = konto1
+            konto1 = konto2
+            konto2 = temp
+        return konto1, konto2, self.kostenstelle
+
+    @property
+    def kompatible_buchungen_key(self):
+        """
+        Erzeugt einen Schlüssel, der für untereinander kompatible Buchungen gleich ist.
+        Buchungen sind kompatibel, wenn sie zwischen den gleichen zwei Konten mit dem gleichen Steuerfall und der
+        gleichen Kostenstelle buchen.
+         :rtype: list
+        """
+        steuercode = None
+        if self.steuerfall:
+            steuercode = self.steuerfall.code
+        return self.konten_key + (steuercode , )
+
+    @property
+    def is_null(self):
+        return self.betrag_soll == Decimal(0) and self.betrag_haben == Decimal(0)
 
     def buchung_mit_getauschten_konten(self):
         if self.steuer_betrag_haben != Decimal(0) or self.steuer_betrag_soll != Decimal(0):
@@ -71,6 +87,22 @@ class Kern_Buchung:
         neue_buchung.steuer_betrag_haben = -self.steuer_betrag_soll
 
         return neue_buchung
+
+    def matches_konten_of_buchung(self, other_buchung):
+        """
+        :param other_buchung:Finesse_Buchung
+        :rtype: bool
+        """
+        return (self.konto_haben == other_buchung.konto_haben
+            and self.konto_soll == other_buchung.konto_soll)
+
+    def anti_matches_konten_of_buchung(self, other_buchung):
+        """
+        :param other_buchung:Finesse_Buchung
+        :rtype: bool
+        """
+        return (self.konto_haben == other_buchung.konto_soll
+            and self.konto_soll == other_buchung.konto_haben)
 
     def matches_buchung(self, other_buchung):
         """
@@ -98,6 +130,10 @@ class Kern_Buchung:
         return True
 
     def fehler_beschreibung_fuer_export_nach_vf(self, konfiguration):
+        """
+        Überprüft ob diese Buchung zum VF exportiert werden kann und gibt eine Fehlerbeschreibung zurück falls nicht.
+        Im Erfolgsfall ist das Ergbnis None.
+        """
         if not self.kostenstelle:
             return None
 
@@ -111,6 +147,22 @@ class Kern_Buchung:
             return u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
 
         return None
+
+    def subtract_betraege_von(self, andere_buchung):
+        """
+        """
+        if andere_buchung.matches_konten_of_buchung(self):
+            self.betrag_soll -= andere_buchung.betrag_soll
+            self.betrag_haben -= andere_buchung.betrag_haben
+            self.steuer_betrag_soll -= andere_buchung.steuer_betrag_soll
+            self.steuer_betrag_haben -= andere_buchung.steuer_betrag_haben
+        else:
+            # TODO: unit test for this case
+            assert andere_buchung.anti_matches_konten_of_buchung(self)
+            self.betrag_soll += andere_buchung.betrag_haben
+            self.betrag_haben += andere_buchung.betrag_soll
+            self.steuer_betrag_soll += andere_buchung.steuer_betrag_haben
+            self.steuer_betrag_haben += andere_buchung.steuer_betrag_soll
 
     def dict_for_export_to_vf(self, konfiguration):
         """
@@ -159,3 +211,50 @@ class Kern_Buchung:
         if not konfiguration.konten_mit_kostenstelle.enthaelt_konto(konto):
             kostenstelle = None
         return VF_Buchung.vf_format_konto(konfiguration.vf_konto_from_konto(konto), kostenstelle)
+
+    def dict_for_export_to_finesse(self, konfiguration):
+        """
+        :rtype: dict
+        """
+
+        # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
+        result = {}
+        result[u'Datum'] = self.datum
+        result[u'Buchungstext'] = self.buchungstext
+        result[u'Konto Soll'] = self.konto_soll
+        result[u'Konto Haben'] = self.konto_haben
+
+        # Der Text-Import nach Finesse kennt nur einen Betrag und einen Steuerbetrag ohne Aufteilung nach Soll und
+        # Haben. Es stellt sich heraus, dass der Betrag immer der Bruttobetrag ist. Die Zuordnung der Steuer zum
+        # richtigen Konto erfolgt automatisch basierend auf dem beteiligten Aufwands- oder Ertragskonto.
+        # Der Normalfall ist dabei, dass Umsatzsteuer im Haben und Vorsteuer im Soll gebucht wird.
+
+        result[u'Betrag'] = self.betrag_soll
+        if self.steuer_betrag_haben and self.steuer_betrag_haben != Decimal(0):
+            assert self.steuer_betrag_soll == Decimal(0)
+            # Steuer wird auf der Habenseite verbucht, also ist der Bruttobetrag im Soll.
+            result[u'Betrag USt'] = self.steuer_betrag_haben
+            result[u'Betrag'] = self.betrag_soll
+        elif self.steuer_betrag_soll and self.steuer_betrag_soll != Decimal(0):
+            # Steuer wird auf der Sollseite verbucht, also ist der Bruttobetrag im Haben.
+            result[u'Betrag USt'] = self.steuer_betrag_soll
+            result[u'Betrag'] = self.betrag_haben
+        else:
+            assert self.betrag_soll == self.betrag_haben
+            result[u'Betrag'] = self.betrag_soll
+
+        if self.steuerfall:
+            result[u'USt-Code'] = self.steuerfall.code
+
+        if self.kostenstelle:
+            result[u'Kostenrechnungsobjekt 1'] = self.kostenstelle
+        if self.rechnungsnummer:
+            result[u'Rechnungsnummer'] = self.rechnungsnummer
+
+        # Die VF-Belegnummer gilt nur im Kontext einer Belegart, aber da Finesse nur Zahlen als Belegnummer akzeptiert,
+        # kann die Belegart nicht ohne weiteres mit übertragen werden.
+        if self.belegnummer:
+            result[u'Belegnummer 1'] = self.belegnummer
+
+        return result
+

@@ -311,58 +311,58 @@ class Finesse_Buchung:
 
         return True
 
-    def vf_buchung_for_export(self):
-        assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
-
-        if not self.prepare_for_vf():
-            return None
-
-        result = VF_Buchung.VF_Buchung(self.konfiguration)
-        result.kern_buchung = copy.copy(self.kern_buchung)
-
-        # Der Normalfall ist, das Habenkonto auf 'Konto' im VF abzubilden. Bei positivem Betrag wird dieses Konto
-        # vom VF als Habenkonto angezeigt.
-        konto_im_haben = True
-        if self.steuerfall:
-            # Der Bruttobetrag muss immer auf das Konto gebucht werden, der Nettobetrag auf das Gegenkonto.
-            if abs (self.betrag_soll) > abs (self.betrag_haben):
-                konto_im_haben = False
-        else:
-            if self.betrag_soll != self.betrag_haben:
-                self.fehler_beschreibung = u'Buchung ohne Steuer hat differierende Soll- und Habenbeträge'
-                return None
-
-        # Notiz: früher haben wir Mitgliedskonten möglichst dem "Konto" zugeordnet, damit sie im Journal des VF
-        # möglichst links stehen. Das bringt seit der Umstellung auf Soll- und Haben-Darstellung nichts mehr und
-        # ist daher weg.
-
-        if konto_im_haben:
-            result.konto = self.konto_haben_for_vf
-            result.konto_kostenstelle = self.konto_haben_kostenstelle
-            result.gegen_konto = self.konto_soll_for_vf
-            result.gegen_konto_kostenstelle = self.konto_soll_kostenstelle
-            result.betrag = self.betrag_haben
-        else:
-            result.konto = self.konto_soll_for_vf
-            result.konto_kostenstelle = self.konto_soll_kostenstelle
-            result.gegen_konto = self.konto_haben_for_vf
-            result.gegen_konto_kostenstelle = self.konto_haben_kostenstelle
-            result.betrag = -self.betrag_soll
-
-        if self.steuerfall:
-            if self.steuerfall.art == Configuration.steuerart.Vorsteuer:
-                result.steuer_konto = self.konfiguration.steuer_configuration.vf_vorsteuer_konto
-            elif self.steuerfall.art == Configuration.steuerart.Umsatzsteuer:
-                result.steuer_konto = self.konfiguration.steuer_configuration.vf_umsatzsteuer_konto
-
-        result.vf_nr = self.vf_nr
-        result.datum = self.datum
-        result.mwst_satz = self.mwst_satz
-        result.buchungstext = self.buchungstext
-        result.vf_belegart = VF_Buchung.vf_belegart_for_import_from_finesse
-        result.vf_belegnummer = CheckDigit.append_checkdigit(unicode(self.finesse_journalnummer))
-
-        return result
+    # def vf_buchung_for_export(self):
+    #     assert self.finesse_buchungs_journal == finesse_fournal_for_export_to_vf
+    #
+    #     if not self.prepare_for_vf():
+    #         return None
+    #
+    #     result = VF_Buchung.VF_Buchung(self.konfiguration)
+    #     result.kern_buchung = copy.copy(self.kern_buchung)
+    #
+    #     # Der Normalfall ist, das Habenkonto auf 'Konto' im VF abzubilden. Bei positivem Betrag wird dieses Konto
+    #     # vom VF als Habenkonto angezeigt.
+    #     konto_im_haben = True
+    #     if self.steuerfall:
+    #         # Der Bruttobetrag muss immer auf das Konto gebucht werden, der Nettobetrag auf das Gegenkonto.
+    #         if abs (self.betrag_soll) > abs (self.betrag_haben):
+    #             konto_im_haben = False
+    #     else:
+    #         if self.betrag_soll != self.betrag_haben:
+    #             self.fehler_beschreibung = u'Buchung ohne Steuer hat differierende Soll- und Habenbeträge'
+    #             return None
+    #
+    #     # Notiz: früher haben wir Mitgliedskonten möglichst dem "Konto" zugeordnet, damit sie im Journal des VF
+    #     # möglichst links stehen. Das bringt seit der Umstellung auf Soll- und Haben-Darstellung nichts mehr und
+    #     # ist daher weg.
+    #
+    #     if konto_im_haben:
+    #         result.konto = self.konto_haben_for_vf
+    #         result.konto_kostenstelle = self.konto_haben_kostenstelle
+    #         result.gegen_konto = self.konto_soll_for_vf
+    #         result.gegen_konto_kostenstelle = self.konto_soll_kostenstelle
+    #         result.betrag = self.betrag_haben
+    #     else:
+    #         result.konto = self.konto_soll_for_vf
+    #         result.konto_kostenstelle = self.konto_soll_kostenstelle
+    #         result.gegen_konto = self.konto_haben_for_vf
+    #         result.gegen_konto_kostenstelle = self.konto_haben_kostenstelle
+    #         result.betrag = -self.betrag_soll
+    #
+    #     if self.steuerfall:
+    #         if self.steuerfall.art == Configuration.steuerart.Vorsteuer:
+    #             result.steuer_konto = self.konfiguration.steuer_configuration.vf_vorsteuer_konto
+    #         elif self.steuerfall.art == Configuration.steuerart.Umsatzsteuer:
+    #             result.steuer_konto = self.konfiguration.steuer_configuration.vf_umsatzsteuer_konto
+    #
+    #     result.vf_nr = self.vf_nr
+    #     result.datum = self.datum
+    #     result.mwst_satz = self.mwst_satz
+    #     result.buchungstext = self.buchungstext
+    #     result.vf_belegart = VF_Buchung.vf_belegart_for_import_from_finesse
+    #     result.vf_belegnummer = CheckDigit.append_checkdigit(unicode(self.finesse_journalnummer))
+    #
+    #     return result
 
     @property
     def dict_for_export_to_vf(self):
@@ -468,23 +468,23 @@ class Finesse_Buchung:
 
         return result
 
-    @property
-    def konten_key(self):
-        # Vertauschte Konten müssen den gleichen Schlüssel ergeben.
-        if self.konto_haben < self.konto_soll:
-            konto1 = self.konto_haben
-            konto2 = self.konto_soll
-        else:
-            konto1 = self.konto_soll
-            konto2 = self.konto_haben
-        return konto1, konto2, self.kostenstelle
+    # @property
+    # def konten_key(self):
+    #     # Vertauschte Konten müssen den gleichen Schlüssel ergeben.
+    #     if self.konto_haben < self.konto_soll:
+    #         konto1 = self.konto_haben
+    #         konto2 = self.konto_soll
+    #     else:
+    #         konto1 = self.konto_soll
+    #         konto2 = self.konto_haben
+    #     return konto1, konto2, self.kostenstelle
 
-    @property
-    def kompatible_buchungen_key(self):
-        steuercode = None
-        if self.steuerfall:
-            steuercode = self.steuerfall.code
-        return self.konten_key + (steuercode , )
+    # @property
+    # def kompatible_buchungen_key(self):
+    #     steuercode = None
+    #     if self.steuerfall:
+    #         steuercode = self.steuerfall.code
+    #     return self.konten_key + (steuercode , )
 
     def lookup_storno_partner(self, storno_candidates):
         """

@@ -88,11 +88,11 @@ class CompleteTestCases (unittest.TestCase):
         controller.connectImportedFinesseBuchungen()
         controller.entferne_stornierte_finesse_buchungen()
 
-        # Export for VF
+        # Export to VF
         self.handle_export_to_vf(test_dir, controller)
 
-        # Export for Finesse
-        self.handle_export_for_finesse(test_dir, controller)
+        # Export to Finesse
+        self.handle_export_to_finesse(test_dir, controller)
 
         # Fehlerhafte Buchungen
         self.handle_fehlerhafte_buchungen(test_dir, controller)
@@ -114,7 +114,7 @@ class CompleteTestCases (unittest.TestCase):
         else:
             self.assertFalse(os.path.exists(expected_path), "Expected vf results, but non were produced")
 
-    def handle_export_for_finesse(self, test_dir, controller):
+    def handle_export_to_finesse(self, test_dir, controller):
         expected_path = os.path.join(test_dir, u'finesse_expected.csv')
         finesse_export_list = controller.vfBuchungenForExportToFinesse()
         if len(finesse_export_list) > 0:

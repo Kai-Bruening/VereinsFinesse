@@ -281,7 +281,7 @@ class MainController:
                         self.add_finesse_buchung_to_table_by_konten_key(b)
 
     def add_finesse_buchung_to_table_by_konten_key(self, finesse_buchung):
-        konten_key = finesse_buchung.konten_key
+        konten_key = finesse_buchung.kern_buchung.konten_key
         if konten_key in self.finesse_buchungen_for_export_by_konten_key:
             self.finesse_buchungen_for_export_by_konten_key[konten_key].append(finesse_buchung)
         else:
@@ -297,7 +297,8 @@ class MainController:
                                    strict=True)
         writer.writeheader()
         for vfBuchung in vfBuchungen:
-            writer.writerow(vfBuchung.dict_for_export_to_finesse)
+            for finesse_dict in vfBuchung.dicts_for_export_to_finesse:
+                writer.writerow(finesse_dict)
 
     def connectImportedVFBuchungen(self):
         for vf_buchung in self.vf_buchungenImportedFromFinesse.itervalues():
@@ -396,18 +397,16 @@ class MainController:
         """
         :rtype: list
         """
-        result = []
-        for vf_buchung in self.vf_buchungenForExportToFinesse:
-            finesse_buchungen = vf_buchung.finesse_buchungen_from_vf_buchung()
-            if finesse_buchungen != None:
-                result += finesse_buchungen
-            else:
-                self.fehlerhafte_vf_buchungen.append(vf_buchung)
-
-        #if len(self.fehlerhafte_vf_buchungen) > 0:
-        #    raise StopRun()
-
-        return result
+        return self.vf_buchungenForExportToFinesse;
+        # result = []
+        # for vf_buchung in self.vf_buchungenForExportToFinesse:
+        #     finesse_buchungen = vf_buchung.finesse_buchungen_from_vf_buchung()
+        #     if finesse_buchungen != None:
+        #         result += finesse_buchungen
+        #     else:
+        #         self.fehlerhafte_vf_buchungen.append(vf_buchung)
+        #
+        # return result
 
     @property
     def has_fehlerhafte_buchungen(self):

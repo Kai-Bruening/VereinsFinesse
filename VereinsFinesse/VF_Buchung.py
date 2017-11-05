@@ -93,6 +93,10 @@ class VF_Buchung:
         # Die Quellwerte werden für den Fall einer Fehlerausgabe gemerkt.
         self.source_values = value_dict
 
+        self.kern_buchung = self.kern_buchung_from_vf_export(value_dict);
+        if not self.kern_buchung:
+            return False
+
         self.vf_nr = int(value_dict[u'Nr'])
         self.vf_belegart = value_dict[u'Belegart']
         belegnummer_text = value_dict[u'Belegnummer']
@@ -105,10 +109,7 @@ class VF_Buchung:
             self.finesse_journalnummer = int(finesse_journal_nummer_text)
         else:
             self.vf_belegnummer = int(belegnummer_text)
-
-        self.kern_buchung = self.kern_buchung_from_vf_export(value_dict);
-        if not self.kern_buchung:
-            return False
+            self.kern_buchung.belegnummer = int(belegnummer_text)
 
         self.datum = value_dict[u'Datum']
         self.buchungstext = value_dict[u'Buchungstext']
@@ -204,7 +205,7 @@ class VF_Buchung:
             return False
         kern_buchung.kostenstelle = konto_kostenstelle if konto_kostenstelle else gegen_konto_kostenstelle
 
-        betrag = decimal_with_decimalcomma(value_dict[u'Betrag'])
+        #betrag = decimal_with_decimalcomma(value_dict[u'Betrag'])
         betrag_konto = decimal_with_decimalcomma(value_dict[u'Betrag(Konto)'])
         betrag_gegen_konto = decimal_with_decimalcomma(value_dict[u'Betrag(G-Konto)'])
         betrag_steuer_konto = decimal_with_decimalcomma(value_dict[u'Betrag(S-Konto)'])
@@ -465,11 +466,12 @@ class VF_Buchung:
         # Finesse scheint beim Import eine Kostenstelle hinzuzufügen, wenn Splitbuchungen importiert werden. Das muss
         # noch näher untersucht werden, aber zur Zeit ignorieren wir die Kostenstelle in der Finesse-Buchung, wenn die
         # VF-Buchung keine hat.
-        if not self.kostenstelle:
-            finesse_buchung.kostenstelle = None
+        #TODO: needs a test
+        if not self.kern_buchung.kostenstelle:
+            finesse_buchung.kern_buchung.kostenstelle = None
 
         # Wir bilden Gruppen von kompatiblen Finesse-Buchungen, die untereinander konsolidiert werden können.
-        kompatible_buchungen_key = finesse_buchung.kompatible_buchungen_key
+        kompatible_buchungen_key = finesse_buchung.kern_buchung.kompatible_buchungen_key
         if kompatible_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
             kompatible_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key]
             kompatible_buchungen.append(finesse_buchung)
@@ -479,13 +481,99 @@ class VF_Buchung:
 
         finesse_buchung.original_vf_buchung = self
 
+    @property
+    def dicts_for_export_to_finesse(self):
+        """
+        :rtype: list
+        """
+        assert self.vf_belegart != vf_belegart_for_import_from_finesse
+
+        kompatible_finesse_buchungen_key = self.kern_buchung.kompatible_buchungen_key
+
+        result = []
+
+        # Zunächst werden evt. nicht mehr kompatible Buchungen in Finesse storniert.
+        for key, finesse_buchungen in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key.items():
+            if key != kompatible_finesse_buchungen_key:
+                storno_buchung = self.kern_buchung_zum_stornieren_von_finesse_buchungen(finesse_buchungen)
+                # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
+                if not storno_buchung.is_null:
+                    result.append(self.dict_for_export_to_finesse(storno_buchung))
+
+        # Jetzt eine Finesse-Buchung für diese VF-Buchung erzeugen, korrigiert um evt. bereits übertragene kompatible
+        # frühere Versionen der Buchung.
+        kompatible_finesse_buchungen = None
+        if kompatible_finesse_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
+            kompatible_finesse_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_finesse_buchungen_key]
+
+        export_buchung = self.kern_buchung_zum_export_nach_finesse_korrigiert_um_alte_exports(kompatible_finesse_buchungen)
+
+        # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
+        if not export_buchung.is_null:
+            result.append(self.dict_for_export_to_finesse(export_buchung))
+
+        return result
+
+    def kern_buchung_zum_stornieren_von_finesse_buchungen(self, finesse_buchungen):
+        """
+        :rtype: Kern_Buchung.Kern_Buchung
+        """
+
+        # Initialisieren einer Kernbuchhung mit den Werten der ersten Finesse-Buchung ohne Beträge.
+        storno_buchung = copy.copy(finesse_buchungen[0].kern_buchung)
+        storno_buchung.betrag_haben = Decimal(0)
+        storno_buchung.betrag_soll = Decimal(0)
+        storno_buchung.steuer_betrag_haben = Decimal(0)
+        storno_buchung.steuer_betrag_soll = Decimal(0)
+
+        # Da der Effekt von finesse_buchungen entfernt werden soll, müssen alle Beträge abgezogen werden.
+        for b in finesse_buchungen:
+            storno_buchung.subtract_betraege_von(b.kern_buchung)
+
+        storno_buchung.buchungstext = u'Storno wegen inkompatibler Änderung im VF: {0}'.format(
+            storno_buchung.buchungstext)
+
+        return storno_buchung
+
+    def kern_buchung_zum_export_nach_finesse_korrigiert_um_alte_exports(self, existierende_finesse_buchungen):
+        """
+        :rtype: Kern_Buchung.Kern_Buchung
+        """
+
+        if self.kern_buchung.is_null:
+            # Die Buchung im VF wurde auf 0 gesetzt, das ist ein entarteter Fall für die Kontenzuordnung. Daher
+            # wird die Zuordnung von den existierenden Finesse Buchungen genommen.
+            export_buchung = self.kern_buchung_zum_stornieren_von_finesse_buchungen(existierende_finesse_buchungen)
+            export_buchung.datum = self.kern_buchung.datum
+            export_buchung.buchungstext = self.kern_buchung.buchungstext
+            export_buchung.rechnungsnummer = self.kern_buchung.rechnungsnummer
+            export_buchung.belegnummer = self.kern_buchung.belegnummer
+
+        else:
+            export_buchung = copy.copy(self.kern_buchung)
+
+            # Wenn es bereits Buchungen in Finesse zu dieser Buchung gibt, wird der Saldo für die neue Buchung gebildet.
+            if existierende_finesse_buchungen:
+                for b in existierende_finesse_buchungen:
+                    export_buchung.subtract_betraege_von(b.kern_buchung)
+
+        return export_buchung
+
+    def dict_for_export_to_finesse(self, kern_buchung):
+        """
+        :rtype: dict
+        """
+        result = kern_buchung.dict_for_export_to_finesse(self.konfiguration)
+        result[u'VF_Nr'] = CheckDigit.append_checkdigit(unicode(self.vf_nr))
+        return result
+
     def finesse_buchungen_from_vf_buchung(self):
         """
         :rtype: list
         """
         assert self.vf_belegart != vf_belegart_for_import_from_finesse
 
-        kompatible_finesse_buchungen_key = self.finesse_kompatible_buchungen_key
+        kompatible_finesse_buchungen_key = self.kern_buchung.kompatible_buchungen_key
 
         result = []
 
@@ -653,24 +741,24 @@ class VF_Buchung:
     def fieldnames_for_export_to_vf(cls):
         return [u'Datum',u'Konto',u'Betrag',u'Gegenkonto',u'Steuerkonto',u'Mwst',u'Buchungstext',u'BelegArt',u'BelegNr']
 
-    @property
-    def dict_for_export_to_vf(self):
-        """
-        :rtype: dict
-        """
-        # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
-        result = {}
-        result[u'Datum'] = self.datum
-        result[u'Konto'] = vf_format_konto(self.konto, self.konto_kostenstelle)
-        result[u'Betrag'] = self.betrag
-        result[u'Gegenkonto'] = vf_format_konto(self.gegen_konto, self.gegen_konto_kostenstelle)
-        if self.has_steuer:
-            result[u'Steuerkonto'] = self.steuer_konto
-            result[u'Mwst'] = self.mwst_satz
-        result[u'Buchungstext'] = self.buchungstext
-        result[u'BelegArt'] = self.vf_belegart
-        result[u'BelegNr'] = self.vf_belegnummer
-        return result
+    # @property
+    # def dict_for_export_to_vf(self):
+    #     """
+    #     :rtype: dict
+    #     """
+    #     # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
+    #     result = {}
+    #     result[u'Datum'] = self.datum
+    #     result[u'Konto'] = vf_format_konto(self.konto, self.konto_kostenstelle)
+    #     result[u'Betrag'] = self.betrag
+    #     result[u'Gegenkonto'] = vf_format_konto(self.gegen_konto, self.gegen_konto_kostenstelle)
+    #     if self.has_steuer:
+    #         result[u'Steuerkonto'] = self.steuer_konto
+    #         result[u'Mwst'] = self.mwst_satz
+    #     result[u'Buchungstext'] = self.buchungstext
+    #     result[u'BelegArt'] = self.vf_belegart
+    #     result[u'BelegNr'] = self.vf_belegnummer
+    #     return result
 
 
 def vf_read_konto(dict_value):
