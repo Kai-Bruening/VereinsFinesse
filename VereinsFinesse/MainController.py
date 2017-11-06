@@ -36,11 +36,6 @@ class MainController:
         # Vereinsflieger-Import sein.
         self.finesse_buchungen_originally_imported_from_vf = []
 
-        # Finesse-Buchungen, die neu zum VF exportiert werden sollen.
-        # Untermenge von exportable_finesse_buchungen_by_finesse_journal_nr.
-        # Hier sind die Einträge bisher einzelne Buchungen.
-        self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr = {}
-
         self.finesse_buchungen_for_export_by_konten_key = {}   # Für den Storno-Check
 
         self.vf_buchungen = []
@@ -259,24 +254,49 @@ class MainController:
             # Nur Buchungen aus dem "Dialog" in Finesse können in den Vereinsflieger übernommen werden, da nur sie
             # endgültig und eindeutig zu identifizieren sind.
             elif b.finesse_buchungs_journal == Finesse_Buchung.finesse_fournal_for_export_to_vf:
-                # Mehrere Finesse-Buchungen im Dialog können die gleiche Nummer haben (wird für Skonto benutzt).
-                # Deshalb ist jeder Eintrag eine Liste von Buchungen.
-                if b.finesse_journalnummer in self.exportable_finesse_buchungen_by_finesse_journal_nr:
-                    self.exportable_finesse_buchungen_by_finesse_journal_nr[b.finesse_journalnummer].append(b)
-                else:
-                    self.exportable_finesse_buchungen_by_finesse_journal_nr[b.finesse_journalnummer] = [b]
+                if self.add_to_exportable_finesse_buchungen(b):
+                    self.add_finesse_buchung_to_table_by_konten_key(b)
+                    # Nur Buchungen für bestimmte Konten entsprechend der Konfiguration werden tatsächlich in den
+                    # VF übernommen.
+                    # if self.is_buchung_exported_to_vf(b):
+                    #     self.add_to_buchungen_for_export_to_vf(b)
 
-                # Nur Buchungen für bestimmte Konten entsprechend der Konfiguration werden tatsächlich in den
-                # VF übernommen.
-                if self.is_buchung_exported_to_vf(b):
-                    # Der tatsächliche Export zum VF ist (bisher) nur mit eindeutigen Journalnummern möglich.
-                    if b.finesse_journalnummer in self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr:
-                        b.fehler_beschreibung = u'Buchung aus Finesse mit nicht-eindeutiger Dialog-Journalnummer ({0})'.format(
-                            b.finesse_journalnummer)
-                        self.fehlerhafte_finesse_buchungen.append(b)
-                    else:
-                        self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr[b.finesse_journalnummer] = b
-                        self.add_finesse_buchung_to_table_by_konten_key(b)
+    def add_to_exportable_finesse_buchungen(self, finesse_buchung):
+        # Mehrere Finesse-Buchungen im Dialog können die gleiche Nummer haben (wird für Skonto benutzt).
+        # Deshalb ist jeder Eintrag ein Dictionary von Buchungen unter dem Kontenschlüssel.
+        konten_key = finesse_buchung.kern_buchung.konten_key
+        journalnummer = finesse_buchung.finesse_journalnummer
+        if journalnummer in self.exportable_finesse_buchungen_by_finesse_journal_nr:
+            buchung_by_konten_key = self.exportable_finesse_buchungen_by_finesse_journal_nr[journalnummer]
+            # Buchungen mit derselben Nummer müssen sich im Kontenschlüssel unterscheiden, wie soll man sie sonst
+            # auseinander halten?
+            if konten_key in buchung_by_konten_key:
+                # Die bereits vorhandene Buchung wird ebenfalls als fehlerhaft markiert…
+                b2 = buchung_by_konten_key[konten_key]
+                if not b2.fehler_beschreibung:
+                    b2.fehler_beschreibung = u'Mehrere Buchungen aus Finesse mit einer Dialog-Journalnummer ({0}) und gleichen Konten'.format(
+                        journalnummer)
+                    self.fehlerhafte_finesse_buchungen.append(b2)
+
+                finesse_buchung.fehler_beschreibung = u'Mehrere Buchungen aus Finesse mit einer Dialog-Journalnummer ({0}) und gleichen Konten'.format(
+                    journalnummer)
+                self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
+                return False
+            # Neue Buchung zum Dictionary hinzufügen.
+            buchung_by_konten_key[konten_key] = finesse_buchung
+        else:
+            # Dictionary mit einer Buchung beginnen.
+            self.exportable_finesse_buchungen_by_finesse_journal_nr[journalnummer] = {konten_key: finesse_buchung}
+
+        return True
+
+    def remove_from_exportable_finesse_buchungen(self, finesse_buchung):
+        journalnummer = finesse_buchung.finesse_journalnummer
+        if journalnummer in self.exportable_finesse_buchungen_by_finesse_journal_nr:
+            buchung_by_konten_key = self.exportable_finesse_buchungen_by_finesse_journal_nr[journalnummer]
+            konten_key = finesse_buchung.kern_buchung.konten_key
+            if konten_key in buchung_by_konten_key:
+                del buchung_by_konten_key[konten_key]   # wird zum Erkennen von Stornos benutzt
 
     def add_finesse_buchung_to_table_by_konten_key(self, finesse_buchung):
         konten_key = finesse_buchung.kern_buchung.konten_key
@@ -308,13 +328,13 @@ class MainController:
             if not finesse_journalnummer in self.exportable_finesse_buchungen_by_finesse_journal_nr:
                 vf_fehler_beschreibung = u'Originale Finesse-Buchung (Dialog: {0}) nicht gefunden'.format(finesse_journalnummer)
             else:
-                original_finesse_buchungen = self.exportable_finesse_buchungen_by_finesse_journal_nr[finesse_journalnummer]
-                # Da der tatsächliche Export nur mit eindeutigen Journalnummern möglich ist, erwarten wir das auch hier.
-                if len(original_finesse_buchungen) > 1:
-                    vf_fehler_beschreibung = u'Originale Finesse-Buchung (Dialog: {0}) nicht eindeutig'.format(
-                        finesse_journalnummer)
+                original_finesse_buchung_by_konten_key = self.exportable_finesse_buchungen_by_finesse_journal_nr[finesse_journalnummer]
+                konten_key = vf_buchung.kern_buchung.konten_key
+                if not konten_key in original_finesse_buchung_by_konten_key:
+                    vf_fehler_beschreibung = u'Originale Finesse-Buchung mit passenden Konten ({0}, {1}) nicht unter Dialog {0} gefunden'.format(
+                        konten_key[0], konten_key[1], finesse_journalnummer)
                 else:
-                    original_finesse_buchung = original_finesse_buchungen[0]
+                    original_finesse_buchung = original_finesse_buchung_by_konten_key[konten_key]
                     if original_finesse_buchung.kopierte_vf_buchung:
                         vf_fehler_beschreibung = u'Mehrere VF-Buchungen zu einer Journalnummer in Finesse (Dialog: {0})'.format(finesse_journalnummer)
                         finesse_fehler_beschreibung = u'Mehrere VF-Buchungen zu dieser Finesse-Buchung gefunden'
@@ -341,12 +361,14 @@ class MainController:
         :rtype: list
         """
         result = []
-        for finesse_buchung in self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr.itervalues():
-            if not finesse_buchung.kopierte_vf_buchung and not finesse_buchung.fehler_beschreibung:
-                if finesse_buchung.ist_valide_fuer_export_nach_vf:
-                    result.append(finesse_buchung)
-                else:
-                    self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
+        for buchung_by_konten_key in self.exportable_finesse_buchungen_by_finesse_journal_nr.itervalues():
+            for finesse_buchung in buchung_by_konten_key.itervalues():
+                if not finesse_buchung.kopierte_vf_buchung and not finesse_buchung.fehler_beschreibung:
+                    if self.is_buchung_exported_to_vf(finesse_buchung):
+                        if finesse_buchung.ist_valide_fuer_export_nach_vf:
+                            result.append(finesse_buchung)
+                        else:
+                            self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
         return result
 
     def connectImportedFinesseBuchungen(self):
@@ -382,10 +404,8 @@ class MainController:
                         storno_partner = b.lookup_storno_partner(storno_group[0:index])
                         if storno_partner:
                             # Entferne das stornierte Buchungspaar aus Export- und Kandidatenliste.
-                            del self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr[
-                                b.finesse_journalnummer]
-                            del self.finesse_buchungen_for_export_to_vf_by_finesse_journal_nr[
-                                storno_partner.finesse_journalnummer]
+                            self.remove_from_exportable_finesse_buchungen(b)
+                            self.remove_from_exportable_finesse_buchungen(storno_partner)
                             del storno_group[index]
                             storno_group.remove(storno_partner)
                             index -= 2
