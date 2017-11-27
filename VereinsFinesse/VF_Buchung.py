@@ -128,7 +128,7 @@ class VF_Buchung:
                 return None
         else:
             # Kein Steuerkonto angegeben, dann muss der MwSt-Satz 0 sein (oder leer).
-            if len(steuer_satz_text) > 0 and int(steuer_satz_text) != 0:
+            if len(steuer_satz_text) > 0 and Decimal(steuer_satz_text) != Decimal(0):
                 self.fehler_beschreibung = u'MwSt-Satz > 0 ({0}) ohne Steuerkonto'.format(steuer_satz_text)
                 return None
             if betrag_konto != -betrag_gegen_konto:
