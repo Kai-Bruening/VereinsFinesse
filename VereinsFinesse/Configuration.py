@@ -20,6 +20,7 @@ class Konfiguration:
 
         self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(u'ausgenommene_konten_vf_nach_finesse')
         self.konten_finesse_nach_vf = self.read_optional_list_from_config(u'konten_finesse_nach_vf')
+        self.ausgenommene_konten_finesse_nach_vf = self.read_optional_list_from_config(u'ausgenommene_konten_finesse_nach_vf')
         self.konten_mit_kostenstelle = self.read_optional_list_from_config(u'konten_mit_kostenstelle')
         self.konten_die_kostenstelle_ignorieren = self.read_optional_list_from_config(u'konten_die_kostenstelle_ignorieren')
 

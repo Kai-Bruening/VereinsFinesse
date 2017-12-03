@@ -28,8 +28,8 @@ class MainController:
 
         # Alle Buchungen aus Finesse, die prinzipiell nach VF exportiert werden können einschließlich bereits
         # exportierter Buchungen. Dies sind alle Buchungen im Dialog, die nicht aus VF importiert wurden.
-        # Da es zu jeder Journalnummer im Dialog mehrere Buchungen geben kann (für Skonto), ist jeder Eintrag eine
-        # Liste von Buchungen.
+        # Da es zu jeder Journalnummer im Dialog mehrere Buchungen geben kann (für Skonto), ist jeder Eintrag ein
+        # Dictionary mit Buchungen nach ihrem Kontenschlüssel.
         self.exportable_finesse_buchungen_by_finesse_journal_nr = {}
 
         # Alle Buchungen aus Finesse, die aus VF importiert wurden. Diese Buchungen können im Dialog oder in
@@ -150,7 +150,8 @@ class MainController:
         return not vf_buchung.kern_buchung.ist_ein_konto_enthalten_in(self.konfiguration.ausgenommene_konten_vf_nach_finesse)
 
     def is_buchung_exported_to_vf(self, finesse_buchung):
-        return finesse_buchung.kern_buchung.ist_ein_konto_enthalten_in(self.konfiguration.konten_finesse_nach_vf)
+        return (finesse_buchung.kern_buchung.ist_ein_konto_enthalten_in(self.konfiguration.konten_finesse_nach_vf)
+        and not finesse_buchung.kern_buchung.ist_ein_konto_enthalten_in(self.konfiguration.ausgenommene_konten_finesse_nach_vf))
 
     def vf_export_path(self):
         vf_path = self.parsed_args.vf_export
@@ -362,13 +363,18 @@ class MainController:
         """
         result = []
         for buchung_by_konten_key in self.exportable_finesse_buchungen_by_finesse_journal_nr.itervalues():
+            # Mehrere Buchungen zu einer Journalnummer müssen für die Unit-Tests in einer definierten Reihenfolge
+            # exportiert werden.
+            sub_result = []
             for finesse_buchung in buchung_by_konten_key.itervalues():
                 if not finesse_buchung.kopierte_vf_buchung and not finesse_buchung.fehler_beschreibung:
                     if self.is_buchung_exported_to_vf(finesse_buchung):
                         if finesse_buchung.ist_valide_fuer_export_nach_vf:
-                            result.append(finesse_buchung)
+                            sub_result.append(finesse_buchung)
                         else:
                             self.fehlerhafte_finesse_buchungen.append(finesse_buchung)
+            sub_result.sort(key=lambda b:b.kern_buchung.konten_key)
+            result += sub_result
         return result
 
     def connectImportedFinesseBuchungen(self):

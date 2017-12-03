@@ -78,6 +78,12 @@ class CompleteTestCases (unittest.TestCase):
         # werden.
         self.do_test_in_directory(u'Null-Buchung im VF')
 
+    def test_ausgenommene_konten_finesse_nach_vf(self):
+        # Einige Konten können für die Übertragung von Finesse ausgenommen werden, selbst wenn das andere Konto
+        # eigentlich übertragen werden müsste. Das wird für die jährlichen Saldenvorträge verwendet.
+        # Der Test enthält zwei Finesse-Buchungen für dasselbe Mitgliedskonto, von denen nur eine übernommen werden darf.
+        self.do_test_in_directory(u'Ausgenommene Konten Finesse nach VF')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
