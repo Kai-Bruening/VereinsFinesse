@@ -84,6 +84,10 @@ class CompleteTestCases (unittest.TestCase):
         # Der Test enthält zwei Finesse-Buchungen für dasselbe Mitgliedskonto, von denen nur eine übernommen werden darf.
         self.do_test_in_directory(u'Ausgenommene Konten Finesse nach VF')
 
+    def test_steuerfall_mit_art_keine(self):
+        # Dieser Fall hat ursprünglich VF-Imports mit "None" als Steuerkonto erzeugt.
+        self.do_test_in_directory(u'Steuerfall mit Art "keine"')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

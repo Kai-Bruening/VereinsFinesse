@@ -223,7 +223,9 @@ class Kern_Buchung:
         result[u'Betrag']     = betrag
 
         if self.steuerfall:
-            result[u'Steuerkonto'] = konfiguration.steuer_configuration.vf_steuer_konto_for_steuerfall(self.steuerfall)
+            steuerkonto = konfiguration.steuer_configuration.vf_steuer_konto_for_steuerfall(self.steuerfall)
+            if steuerkonto:
+                result[u'Steuerkonto'] = steuerkonto
             result[u'Mwst'] = self.steuerfall.ust_satz
 
         return result
