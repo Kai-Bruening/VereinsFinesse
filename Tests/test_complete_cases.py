@@ -86,7 +86,7 @@ class CompleteTestCases (unittest.TestCase):
 
     def test_steuerfall_mit_art_keine(self):
         # Dieser Fall hat ursprünglich VF-Imports mit "None" als Steuerkonto erzeugt.
-        self.do_test_in_directory(u'Steuerfall mit Art "keine"')
+        self.do_test_in_directory(u'Steuerfall mit Art keine')
 
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
