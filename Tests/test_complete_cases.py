@@ -92,6 +92,10 @@ class CompleteTestCases (unittest.TestCase):
         # Dieses Feature wurde für den Übergang von 2016 nach 2017 eingebaut.
         self.do_test_in_directory(u'Ignorieren von Kostenstellenaenderungen')
 
+    def test_aenderung_des_steuerfalls_im_vf(self):
+        # Zur Sicherheit: ein Test, der Stornieren samt neuer Buchung nach Änderung des Steuerfalls im VF testet.
+        self.do_test_in_directory(u'Aenderung des Steuerfalls im VF')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
