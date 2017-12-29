@@ -135,6 +135,13 @@ class Finesse_Buchung:
 
         return kern_buchung
 
+    @property
+    def kompatible_buchungen_key(self):
+        """
+        Leitet an die Kernbuchung weiter unter Berücksichtigung der Konfigurationseinstellung für Kostenstellen.
+        """
+        return self.kern_buchung.kompatible_buchungen_key(not self.konfiguration.ignoriere_aenderung_der_kostenstelle)
+
     def create_placeholder_for_deleted_vf_buchung(self):
         # Start with an empty VF_Buchung
         result = VF_Buchung.VF_Buchung(self.konfiguration)

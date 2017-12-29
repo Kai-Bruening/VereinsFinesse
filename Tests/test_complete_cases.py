@@ -88,6 +88,10 @@ class CompleteTestCases (unittest.TestCase):
         # Dieser Fall hat ursprünglich VF-Imports mit "None" als Steuerkonto erzeugt.
         self.do_test_in_directory(u'Steuerfall mit Art keine')
 
+    def test_ignorieren_von_kostenstellenaenderungen(self):
+        # Dieses Feature wurde für den Übergang von 2016 nach 2017 eingebaut.
+        self.do_test_in_directory(u'Ignorieren von Kostenstellenaenderungen')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

@@ -1,0 +1,5 @@
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
+"352012";"08.04.2016";"12023";"8101-911";"-43,60";"1879";"7.00";"ICAO-Karten 2016 + Fliegertaschenkal. + Tapes + Flugbücher";"";"0";"20161117";"";"";"";"43,60";"S";"-43,60";"40,75";"2,85";
+"352011";"08.04.2016";"12008";"8101-911";"-7,90";"1879";"19.00";"ICAO-Karten 2016 + Fliegertaschenkal. + Tapes + Flugbücher";"";"0";"20161158";"";"";"";"7,90";"S";"-7,90";"6,64";"1,26";
+
+"352010";"08.04.2016";"12021";"8101-911";"-25,92";"1879";"7.00";"ICAO-Karten 2016 + Fliegertaschenkal. + Tapes + Flugbücher";"";"0";"20161359";"";"";"";"25,92";"S";"-25,92";"24,22";"1,70";

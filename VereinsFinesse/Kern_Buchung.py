@@ -41,7 +41,7 @@ class Kern_Buchung:
             self.kostenstelle = None
 
     @property
-    def konten_key(self):
+    def konten_key_ohne_kostenstelle(self):
         """
         :rtype: list
        """
@@ -53,20 +53,27 @@ class Kern_Buchung:
             temp = konto1
             konto1 = konto2
             konto2 = temp
-        return konto1, konto2, self.kostenstelle
+        return konto1, konto2
 
     @property
-    def kompatible_buchungen_key(self):
+    def konten_key(self):
+        return self.konten_key_ohne_kostenstelle + (self.kostenstelle , )
+
+    def kompatible_buchungen_key(self, mit_kostenstelle):
         """
         Erzeugt einen Schlüssel, der für untereinander kompatible Buchungen gleich ist.
         Buchungen sind kompatibel, wenn sie zwischen den gleichen zwei Konten mit dem gleichen Steuerfall und der
         gleichen Kostenstelle buchen.
          :rtype: list
         """
+        if mit_kostenstelle:
+            key = self.konten_key
+        else:
+            key = self.konten_key_ohne_kostenstelle
         steuercode = None
         if self.steuerfall:
             steuercode = self.steuerfall.code
-        return self.konten_key + (steuercode , )
+        return key + (steuercode , )
 
     @property
     def is_null(self):

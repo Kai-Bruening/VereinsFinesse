@@ -16,6 +16,11 @@ class Konfiguration:
     def __init__(self, config_dict):
         self.config_dict = config_dict
 
+        if u'ignoriere_aenderung_der_kostenstelle' in config_dict:
+            self.ignoriere_aenderung_der_kostenstelle = config_dict[u'ignoriere_aenderung_der_kostenstelle']
+        else:
+            self.ignoriere_aenderung_der_kostenstelle = False
+
         self.steuer_configuration = SteuerConfiguration(config_dict)
 
         self.ausgenommene_konten_vf_nach_finesse = self.read_optional_list_from_config(u'ausgenommene_konten_vf_nach_finesse')

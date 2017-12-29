@@ -177,6 +177,13 @@ class VF_Buchung:
 
         return kern_buchung
 
+    @property
+    def kompatible_buchungen_key(self):
+        """
+        Leitet an die Kernbuchung weiter unter Berücksichtigung der Konfigurationseinstellung für Kostenstellen.
+        """
+        return self.kern_buchung.kompatible_buchungen_key(not self.konfiguration.ignoriere_aenderung_der_kostenstelle)
+
     def validate_for_original_finesse_buchung(self, original_finesse_buchung):
         if self.kern_buchung.is_null:    # muss zuerst gecheckt werden, weil die anderen Checks das voraussetzen
             assert original_finesse_buchung.betrag != Decimal(0)    # Finesse kennt keine Buchungen mit Betrag 0
@@ -197,7 +204,7 @@ class VF_Buchung:
             finesse_buchung.kern_buchung.kostenstelle = None
 
         # Wir bilden Gruppen von kompatiblen Finesse-Buchungen, die untereinander konsolidiert werden können.
-        kompatible_buchungen_key = finesse_buchung.kern_buchung.kompatible_buchungen_key
+        kompatible_buchungen_key = finesse_buchung.kompatible_buchungen_key
         if kompatible_buchungen_key in self.kopierte_finesse_buchungen_by_kompatible_buchungen_key:
             kompatible_buchungen = self.kopierte_finesse_buchungen_by_kompatible_buchungen_key[kompatible_buchungen_key]
             kompatible_buchungen.append(finesse_buchung)
@@ -214,7 +221,7 @@ class VF_Buchung:
         """
         assert self.vf_belegart != vf_belegart_for_import_from_finesse
 
-        kompatible_finesse_buchungen_key = self.kern_buchung.kompatible_buchungen_key
+        kompatible_finesse_buchungen_key = self.kompatible_buchungen_key
 
         result = []
 
