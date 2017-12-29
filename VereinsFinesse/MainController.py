@@ -240,6 +240,11 @@ class MainController:
                 self.protokoll_stream.writelines([u'Quellzeile {0} in {1} enthält unerwartete Daten {2}.'.format(reader.line_num, path, row_dict[u'<ÜBERHANG>']), os.linesep])
                 raise StopRun()
 
+            # Ein spezieller Wert (der höchstmögliche in Finesse) für die VF-Nr markiert Buchung aus Finesse, die
+            # komplett ignoriert werden sollen.
+            if row_dict[u'Beleg 2'] == u'999999999':
+                continue
+
             b = Finesse_Buchung.Finesse_Buchung(self.konfiguration)
             if not b.init_from_finesse(row_dict):
                 self.fehlerhafte_finesse_buchungen.append(b)

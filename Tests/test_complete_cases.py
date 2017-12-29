@@ -96,6 +96,10 @@ class CompleteTestCases (unittest.TestCase):
         # Zur Sicherheit: ein Test, der Stornieren samt neuer Buchung nach Änderung des Steuerfalls im VF testet.
         self.do_test_in_directory(u'Aenderung des Steuerfalls im VF')
 
+    def test_nicht_zu_uebertragende_buchung_in_finesse(self):
+        # Buchungen aus Finesse mit 9 9en in "Beleg 2" werden für den Übertrag zum VF ignoriert.
+        self.do_test_in_directory(u'Nicht zu uebertragende Buchung in Finesse')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
