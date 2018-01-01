@@ -34,6 +34,11 @@ class Konfiguration:
         self.konten_nummern_finesse_nach_abgleich = self.read_optional_dictionary_from_config(u'konten_nummern_finesse_nach_abgleich')
         self.konten_nummern_abgleich_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_abgleich_nach_finesse')
 
+        if u'logge_stornierte_buchungen' in config_dict:
+            self.logge_stornierte_buchungen = config_dict[u'logge_stornierte_buchungen']
+        else:
+            self.logge_stornierte_buchungen = False
+
     def read_optional_list_from_config(self, key):
         # Empty elements in yaml end up as None in the dictionary (the importer can’t know whether
         # some empty element was supposed to be an array).

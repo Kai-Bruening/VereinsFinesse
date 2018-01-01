@@ -414,6 +414,12 @@ class MainController:
                         # Suche nach Stornopartner in den vorher importierten Buchungen.
                         storno_partner = b.lookup_storno_partner(storno_group[0:index])
                         if storno_partner:
+                            if self.konfiguration.logge_stornierte_buchungen:
+                                self.protokoll_stream.writelines([u'Finesse Buchung {0}:{1} storniert gegen Buchung {2}:{3}.'.format(
+                                    b.finesse_buchungs_journal, b.finesse_journalnummer,
+                                    storno_partner.finesse_buchungs_journal, storno_partner.finesse_journalnummer),
+                                    os.linesep])
+
                             # Entferne das stornierte Buchungspaar aus Export- und Kandidatenliste.
                             self.remove_from_exportable_finesse_buchungen(b)
                             self.remove_from_exportable_finesse_buchungen(storno_partner)
