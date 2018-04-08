@@ -99,8 +99,9 @@ class VF_Buchung:
         gegen_konto = self.konfiguration.konto_from_vf_konto(gegen_konto)
 
         #TODO: die gleiche Kostenstellen für beide Konten könnte erlaubt werden.
-        if konto_kostenstelle and gegen_konto_kostenstelle:
-            self.fehler_beschreibung = u'Beide Konten haben eine Kostenstelle'
+        if (konto_kostenstelle and gegen_konto_kostenstelle
+            and konto_kostenstelle != gegen_konto_kostenstelle):
+            self.fehler_beschreibung = u'Beide Konten haben Kostenstellen, die nicht übereinstimmen'
             return False
         kern_buchung.kostenstelle = konto_kostenstelle if konto_kostenstelle else gegen_konto_kostenstelle
 

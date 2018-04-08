@@ -337,8 +337,8 @@ class MainController:
                 original_finesse_buchung_by_konten_key = self.exportable_finesse_buchungen_by_finesse_journal_nr[finesse_journalnummer]
                 konten_key = vf_buchung.kern_buchung.konten_key
                 if not konten_key in original_finesse_buchung_by_konten_key:
-                    vf_fehler_beschreibung = u'Originale Finesse-Buchung mit passenden Konten ({0}, {1}) nicht unter Dialog {0} gefunden'.format(
-                        konten_key[0], konten_key[1], finesse_journalnummer)
+                    vf_fehler_beschreibung = u'Originale Finesse-Buchung mit passenden Konten ({0}, {1}, {2}) nicht unter Dialog {3} gefunden'.format(
+                        konten_key[0], konten_key[1], konten_key[2], finesse_journalnummer)
                 else:
                     original_finesse_buchung = original_finesse_buchung_by_konten_key[konten_key]
                     if original_finesse_buchung.kopierte_vf_buchung:

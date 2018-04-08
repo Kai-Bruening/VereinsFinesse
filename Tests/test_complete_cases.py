@@ -100,6 +100,10 @@ class CompleteTestCases (unittest.TestCase):
         # Buchungen aus Finesse mit 9 9en in "Beleg 2" werden für den Übertrag zum VF ignoriert.
         self.do_test_in_directory(u'Nicht zu uebertragende Buchung in Finesse')
 
+    def test_buchung_zwischen_erfolgskonten(self):
+        # Buchungen zwischen zwei Konten mit Kostenstelle nehmen dieselbe Kostenstelle für beide Seiten.
+        self.do_test_in_directory(u'Buchung zwischen Erfolgskonten')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

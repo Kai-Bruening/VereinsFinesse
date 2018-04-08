@@ -168,11 +168,12 @@ class Kern_Buchung:
 
         # Bisher erlauben wir nur Buchungen, bei denen die Kostenstelle eindeutig zugeordnet werden kann.
         if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
-            if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
-                return u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
+            pass
+ #           if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
+ #               return u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
         elif (not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben)
-            and not konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll)
-            and not konfiguration.vf_konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben)):
+            and not konfiguration.konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll)
+            and not konfiguration.konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben)):
             return u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
 
         return None
