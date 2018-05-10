@@ -93,12 +93,19 @@ class VF_Buchung:
         kern_buchung.buchungstext = value_dict[u'Buchungstext']
 
         (konto, konto_kostenstelle) = vf_read_konto(value_dict[u'Konto'])
+        if not konto:
+            self.fehler_beschreibung = u'Konto ({0}) nicht lesbar'.format(value_dict[u'Konto'])
+            return False
+
         (gegen_konto, gegen_konto_kostenstelle) = vf_read_konto(value_dict[u'G-Konto'])
+        if not gegen_konto:
+            self.fehler_beschreibung = u'Gegenkonto ({0}) nicht lesbar'.format(value_dict[u'G-Konto'])
+            return False
 
         konto = self.konfiguration.konto_from_vf_konto(konto)
         gegen_konto = self.konfiguration.konto_from_vf_konto(gegen_konto)
 
-        #TODO: die gleiche Kostenstellen für beide Konten könnte erlaubt werden.
+        # Eine Buchung kann nur eine Kostenstelle haben.
         if (konto_kostenstelle and gegen_konto_kostenstelle
             and konto_kostenstelle != gegen_konto_kostenstelle):
             self.fehler_beschreibung = u'Beide Konten haben Kostenstellen, die nicht übereinstimmen'
@@ -314,7 +321,7 @@ def vf_read_konto(dict_value):
     if match:
         return(int(match.group(1)), int(match.group(2)))
     else:
-        return(int(dict_value), None)
+        return (Kern_Buchung.int_from_string(dict_value), None)
 
 def vf_format_konto(konto, kostenstelle):
     if kostenstelle:

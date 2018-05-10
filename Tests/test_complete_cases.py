@@ -104,6 +104,11 @@ class CompleteTestCases (unittest.TestCase):
         # Buchungen zwischen zwei Konten mit Kostenstelle nehmen dieselbe Kostenstelle für beide Seiten.
         self.do_test_in_directory(u'Buchung zwischen Erfolgskonten')
 
+    def test_fehlende_konten(self):
+        # Zumindest im VF ist es möglich, Buchungen mit einem fehlenden Konto zu erzeugen. Dies muss eine
+        # vernünftige Fehlermeldung erzeugen.
+        self.do_test_in_directory(u'Fehlende Konten')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

@@ -86,9 +86,19 @@ class Finesse_Buchung:
 
         kern_buchung.datum = value_dict[u'Belegdatum']
         kern_buchung.buchungstext = value_dict[u'Buchungs-Text']
-        kern_buchung.konto_soll = self.konfiguration.konto_from_finesse_konto(int(value_dict[u'Konto Soll']))
+
+        konto = Kern_Buchung.int_from_string(value_dict[u'Konto Soll'])
+        if not konto:
+            self.fehler_beschreibung = u'Konto Soll ({0}) nicht lesbar'.format(value_dict[u'Konto Soll'])
+            return None
+        kern_buchung.konto_soll = self.konfiguration.konto_from_finesse_konto(konto)
         kern_buchung.konto_soll_name = value_dict[u'Bezeichnung Konto Soll']
-        kern_buchung.konto_haben = self.konfiguration.konto_from_finesse_konto(int(value_dict[u'Konto Haben']))
+
+        konto = Kern_Buchung.int_from_string(value_dict[u'Konto Haben'])
+        if not konto:
+            self.fehler_beschreibung = u'Konto Haben ({0}) nicht lesbar'.format(value_dict[u'Konto Haben'])
+            return None
+        kern_buchung.konto_haben = self.konfiguration.konto_from_finesse_konto(konto)
         kern_buchung.konto_haben_name = value_dict[u'Bezeichnung Konto Haben']
 
         kern_buchung.kostenstelle = int(value_dict[u'Kostenrechnung 1'])

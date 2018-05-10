@@ -1,0 +1,8 @@
+﻿Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:
+Fehler;Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
+Gegenkonto (xyz) nicht lesbar;242122;15.11.2015;11564;xyz;0,00;1876;7;Gebührenabrechnung;;0;20150014;;;;0,00;H;0;0;0
+Konto () nicht lesbar;242123;15.11.2015;;5155-221;0,00;1879;7;Gebührenabrechnung;;0;20150014;;;;0,00;H;0;0;0
+
+Folgende Buchungen aus Finesse können nicht verarbeitet werden:Fehler;Buchungs-Jahr;Buchungs-Periode;USt-VA-Periode;Buchungs-Journal;Journalnummer;Belegdatum;Konto Soll;Bezeichnung Konto Soll;Konto Haben;Bezeichnung Konto Haben;Steuerkonto;Bezeichnung Steuerkonto;Sammelkonto;Bezeichnung Sammelkonto;Betrag Soll;Betrag Haben;Steuerbetrag Soll;Steuerbetrag Haben;Betrag Sammelkonto Soll;Betrag Sammelkonto Haben;Buchungs-Text;Rechnungsnummer;Beleg 1;Beleg 2;USt-ID-Nummer;Steuercode;Kostenrechnung 1;Kostenrechnung 2;Kostenrechnung 3
+Konto Soll () nicht lesbar;2017;01;01;Dialog;000000252;25.01.2017;;Wer auch immer;000001200;Sparkasse Leverkusen 102002136;000000000;;000001600;Verbindlichkeiten an Mitglieder;160,94;160,94;0,00;0,00;160,94;0,00;ZA-Tost;ER01065;5;0;;;000000000;000000000;000000000
+Konto Haben (abc) nicht lesbar;2017;01;01;Dialog;000000253;25.01.2017;000001200;Wer auch immer;abc;Segelflug, Lfd. Betriebskosten;000001570;Anrechenbare  Vorsteuer 19 %;000001600;Verbindlichkeiten an Mitglieder;3,28;2,76;0,00;0,52;3,28;0,00;SKONTO ER01065;ER01065;5;0;;9;000000220;000000000;000000000

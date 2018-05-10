@@ -290,3 +290,12 @@ class Kern_Buchung:
 
         return result
 
+
+int_string_expr = re.compile('\s*([0-9]{1,10})\s*$')
+
+def int_from_string(s):
+    match = int_string_expr.match(s)
+    if match:
+        return int(match.group(1))
+    else:
+        return None
