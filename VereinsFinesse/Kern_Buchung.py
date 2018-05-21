@@ -291,11 +291,18 @@ class Kern_Buchung:
         return result
 
 
-int_string_expr = re.compile('\s*([0-9]{1,10})\s*$')
+int_string_expr = re.compile('\s*([0-9]{0,10})\s*$')
 
-def int_from_string(s):
+def int_from_string(s, is_empty_ok, map_zero_to_none, name):
     match = int_string_expr.match(s)
-    if match:
-        return int(match.group(1))
-    else:
-        return None
+    if not match:
+        return (u'{0} ({1}) nicht lesbar'.format(name, s), None)
+    num_string = match.group(1)
+    if len(num_string) > 0:
+        result = int(match.group(1))
+        if result == 0 and map_zero_to_none:
+            return (None, None)
+        return (None, result)
+    if is_empty_ok:
+        return (None, None)
+    return (u'{0} ist leer'.format(name), None)

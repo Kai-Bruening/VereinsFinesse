@@ -63,7 +63,9 @@ class Finesse_Buchung:
 
         journal_name = value_dict[u'Buchungs-Journal']
         self.finesse_buchungs_journal = journal_name
-        self.finesse_journalnummer = int(value_dict[u'Journalnummer'])
+        self.fehler_beschreibung, self.finesse_journalnummer = Kern_Buchung.int_from_string(value_dict[u'Journalnummer'], False, False, u'Journalnummer')
+        if self.fehler_beschreibung:
+            return False
         # Feststellen, ob diese Buchung ursprünglich vom VF importiert wurde.
         beleg2_text = value_dict[u'Beleg 2']
         # Anfang 2016 haben einige Buchungen in Finesse kleine Zahlen in Beleg 2 bekommen
@@ -73,7 +75,9 @@ class Finesse_Buchung:
             if not vf_nr_text:
                 self.fehler_beschreibung = u'Falsche Prüfziffer für VF-Nr in Belegnummer 2({0})'.format(beleg2_text)
                 return False
-            self.vf_nr = int(vf_nr_text)
+            self.fehler_beschreibung, self.vf_nr = Kern_Buchung.int_from_string(vf_nr_text, False, False, u'Vereinsflieger-Nr.')
+            if self.fehler_beschreibung:
+                return False
 
         self.kern_buchung = self.kern_buchung_from_finesse_export(value_dict);
         if not self.kern_buchung:
@@ -87,33 +91,35 @@ class Finesse_Buchung:
         kern_buchung.datum = value_dict[u'Belegdatum']
         kern_buchung.buchungstext = value_dict[u'Buchungs-Text']
 
-        konto = Kern_Buchung.int_from_string(value_dict[u'Konto Soll'])
-        if not konto:
-            self.fehler_beschreibung = u'Konto Soll ({0}) nicht lesbar'.format(value_dict[u'Konto Soll'])
+        self.fehler_beschreibung, konto = Kern_Buchung.int_from_string(value_dict[u'Konto Soll'], False, False, u'Konto Soll')
+        if self.fehler_beschreibung:
             return None
         kern_buchung.konto_soll = self.konfiguration.konto_from_finesse_konto(konto)
         kern_buchung.konto_soll_name = value_dict[u'Bezeichnung Konto Soll']
 
-        konto = Kern_Buchung.int_from_string(value_dict[u'Konto Haben'])
-        if not konto:
-            self.fehler_beschreibung = u'Konto Haben ({0}) nicht lesbar'.format(value_dict[u'Konto Haben'])
+        self.fehler_beschreibung, konto = Kern_Buchung.int_from_string(value_dict[u'Konto Haben'], False, False, u'Konto Haben')
+        if self.fehler_beschreibung:
             return None
         kern_buchung.konto_haben = self.konfiguration.konto_from_finesse_konto(konto)
         kern_buchung.konto_haben_name = value_dict[u'Bezeichnung Konto Haben']
 
-        kern_buchung.kostenstelle = int(value_dict[u'Kostenrechnung 1'])
-        # Finesse schreibt "000000000" für leere Kostenstellen.
-        if kern_buchung.kostenstelle == 0:
-            kern_buchung.kostenstelle = None
+        # Finesse schreibt "000000000" für leere Kostenstellen, wird auf None abgebildet.
+        self.fehler_beschreibung, kern_buchung.kostenstelle = Kern_Buchung.int_from_string(value_dict[u'Kostenrechnung 1'], True, True, u'Kostenstelle')
+        if self.fehler_beschreibung:
+            return None
 
         kern_buchung.betrag_soll = decimal_with_decimalcomma(value_dict[u'Betrag Soll'])
         kern_buchung.betrag_haben = decimal_with_decimalcomma(value_dict[u'Betrag Haben'])
 
         # Finesse exportiert '0' für 'kein Konto'
-        steuer_konto = int(value_dict[u'Steuerkonto'])
+        self.fehler_beschreibung, steuer_konto  = Kern_Buchung.int_from_string(value_dict[u'Steuerkonto'], True, True, u'Steuerkonto')
+        if self.fehler_beschreibung:
+            return None
         steuercode_text = value_dict[u'Steuercode']
         if len(steuercode_text) > 0:
-            steuercode = int(steuercode_text)
+            self.fehler_beschreibung, steuercode = Kern_Buchung.int_from_string(steuercode_text, False, False, u'Steuercode')
+            if self.fehler_beschreibung:
+                return None
             kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
             if not kern_buchung.steuerfall:
                 self.fehler_beschreibung = u'Unbekannter Steuercode ({0})'.format(steuercode)
@@ -128,8 +134,8 @@ class Finesse_Buchung:
             kern_buchung.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
             kern_buchung.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
         else:
-            # Kein Steuercode angegeben, dann müssen das übrige Steuerzeugs leer oder 0 sein.
-            if (   steuer_konto != 0
+            # Kein Steuercode angegeben, dann muss das übrige Steuerzeugs leer oder 0 sein.
+            if (   steuer_konto != None
                 or decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll']) != Decimal(0)
                 or decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben']) != Decimal(0)):
                 self.fehler_beschreibung = u'Kein Steuercode, aber andere Steuerangaben sind nicht alle 0'
