@@ -1,4 +1,4 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
-"531849";"18.09.2016";"5575-218";"11935";"-4,40";"1879";"7.00";"Erstattung Winde vom 19.7.16 16:06 für Gastflug ?GP?";"GF";"80";"";"";"";"";"4,40";"S";"-4,11";"4,40";"-0,29";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle
+"531849";"18.09.2016";"5575";"11935";"-4,40";"1879";"7.00";"Erstattung Winde vom 19.7.16 16:06 für Gastflug ?GP?";"GF";"80";"";"";"";"";"4,40";"S";"-4,11";"4,40";"-0,29";"218";
 
-"531848";"18.09.2016";"11935";"5575-218";"4,40";"1879";"7.00";"Erstattung Winde vom 19.7.16 12:28 für Gastflug ?GP?";"GF";"79";"";"";"";"";"4,40";"H";"4,40";"-4,11";"-0,29";
+"531848";"18.09.2016";"11935";"5575";"4,40";"1879";"7.00";"Erstattung Winde vom 19.7.16 12:28 für Gastflug ?GP?";"GF";"79";"";"";"";"";"4,40";"H";"4,40";"-4,11";"-0,29";"218";

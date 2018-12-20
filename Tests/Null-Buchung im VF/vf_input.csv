@@ -1,2 +1,2 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
-"863308";"30.04.2017";"10858";"5150-423";"0,00";"1879";"0";"Abrechnung ";"";"0";"20171575";"";"";"";"0,00";"H";"0,00";"0,00";"0,00";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle
+"863308";"30.04.2017";"10858";"5150";"0,00";"1879";"0";"Abrechnung ";"";"0";"20171575";"";"";"";"0,00";"H";"0,00";"0,00";"0,00";"423";

@@ -1,2 +1,2 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
-"1018156";"30.07.2017";"5570-200";"11943";"-17,90";"1599";"19";"RE-Fugendichtband 24";"FD";"21857";"";"";"";"";"17,90";"S";"-15,04";"17,90";"-2,86";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle
+"1018156";"30.07.2017";"5570";"11943";"-17,90";"1599";"19";"RE-Fugendichtband 24";"FD";"21857";"";"";"";"";"17,90";"S";"-15,04";"17,90";"-2,86";"200";

@@ -75,6 +75,18 @@ class Konfiguration:
             return self.konten_nummern_abgleich_nach_finesse[konto]
         return konto
 
+    def kostenstelle_from_vf_kostenstelle(self, kostenstelle):
+        return kostenstelle # so far no mapping
+
+    def vf_kostenstelle_from_kostenstelle(self, kostenstelle):
+        return kostenstelle # so far no mapping
+
+    def kostenstelle_from_finesse_kostenstelle(self, kostenstelle):
+        return kostenstelle # so far no mapping
+
+    def finesse_kostenstelle_from_kostenstelle(self, kostenstelle):
+        return kostenstelle # so far no mapping
+
 
 class Steuerfall(yaml.YAMLObject):
     yaml_tag = u'!Steuerfall'

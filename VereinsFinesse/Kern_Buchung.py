@@ -226,9 +226,11 @@ class Kern_Buchung:
             betrag = -self.betrag_soll
 
         # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
-        result[u'Konto']      = self.konto_for_vf_export(konto, konfiguration)
-        result[u'Gegenkonto'] = self.konto_for_vf_export(gegen_konto, konfiguration)
-        result[u'Betrag']     = betrag
+        result[u'Konto']        = self.konto_for_vf_export(konto, konfiguration)
+        result[u'Gegenkonto']   = self.konto_for_vf_export(gegen_konto, konfiguration)
+        if self.kostenstelle:
+            result[u'Kostenstelle'] = unicode(konfiguration.vf_kostenstelle_from_kostenstelle(self.kostenstelle))
+        result[u'Betrag']       = betrag
 
         if self.steuerfall:
             steuerkonto = konfiguration.steuer_configuration.vf_steuer_konto_for_steuerfall(self.steuerfall)
@@ -239,10 +241,7 @@ class Kern_Buchung:
         return result
 
     def konto_for_vf_export(self, konto, konfiguration):
-        kostenstelle = self.kostenstelle
-        if not konfiguration.konten_mit_kostenstelle.enthaelt_konto(konto):
-            kostenstelle = None
-        return VF_Buchung.vf_format_konto(konfiguration.vf_konto_from_konto(konto), kostenstelle)
+        return unicode(konfiguration.vf_konto_from_konto(konto))
 
     def dict_for_export_to_finesse(self, konfiguration):
         """
@@ -279,7 +278,7 @@ class Kern_Buchung:
             result[u'USt-Code'] = self.steuerfall.code
 
         if self.kostenstelle:
-            result[u'Kostenrechnungsobjekt 1'] = self.kostenstelle
+            result[u'Kostenrechnungsobjekt 1'] = konfiguration.finesse_kostenstelle_from_kostenstelle(self.kostenstelle)
         if self.rechnungsnummer:
             result[u'Rechnungsnummer'] = self.rechnungsnummer
 

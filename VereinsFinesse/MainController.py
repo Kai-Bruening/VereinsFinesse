@@ -221,7 +221,7 @@ class MainController:
                                    strict=True)
         writer.writeheader()
         for finesse_buchung in finesse_buchungen:
-            writer.writerow(finesse_buchung .dict_for_export_to_vf)
+            writer.writerow(finesse_buchung.dict_for_export_to_vf)
 
 
     def import_finesse(self, path):

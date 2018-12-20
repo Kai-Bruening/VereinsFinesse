@@ -1,5 +1,5 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
-"1059223";"31.08.2017";"12054";"1200";"-432,00";"";"0";"Tätivaara/Rückerst. Diffenz LS";"FD";"2519";"";"";"";"";"432,00";"S";"-432,00";"432,00";"0,00";
-"1059222";"31.08.2017";"12059";"1200";"-432,00";"";"0";"Neumenn/Rückerst. Differenz LS";"FD";"2519";"";"";"";"";"432,00";"S";"-432,00";"432,00";"0,00";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle
+"1059223";"31.08.2017";"12054";"1200";"-432,00";"";"0";"Tätivaara/Rückerst. Diffenz LS";"FD";"2519";"";"";"";"";"432,00";"S";"-432,00";"432,00";"0,00";"";
+"1059222";"31.08.2017";"12059";"1200";"-432,00";"";"0";"Neumenn/Rückerst. Differenz LS";"FD";"2519";"";"";"";"";"432,00";"S";"-432,00";"432,00";"0,00";"";
 
-"1059224";"31.08.2017";"12059";"1200";"-432,00";"";"0";"Neumenn/Rückerst. Differenz LS";"FD";"6346";"";"";"";"";"432,00";"S";"-432,00";"432,00";"0,00";
+"1059224";"31.08.2017";"12059";"1200";"-432,00";"";"0";"Neumenn/Rückerst. Differenz LS";"FD";"6346";"";"";"";"";"432,00";"S";"-432,00";"432,00";"0,00";"";

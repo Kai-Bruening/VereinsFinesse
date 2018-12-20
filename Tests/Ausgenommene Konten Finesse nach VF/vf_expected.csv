@@ -1,2 +1,2 @@
-Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr
-30.07.2017;11943;17.90;5570-200;1599;19;RE-Fugendichtband 24;FD;21857
+Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr;Kostenstelle
+30.07.2017;11943;17.90;5570;1599;19;RE-Fugendichtband 24;FD;21857;200

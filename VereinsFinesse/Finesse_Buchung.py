@@ -104,9 +104,10 @@ class Finesse_Buchung:
         kern_buchung.konto_haben_name = value_dict[u'Bezeichnung Konto Haben']
 
         # Finesse schreibt "000000000" für leere Kostenstellen, wird auf None abgebildet.
-        self.fehler_beschreibung, kern_buchung.kostenstelle = Kern_Buchung.int_from_string(value_dict[u'Kostenrechnung 1'], True, True, u'Kostenstelle')
+        self.fehler_beschreibung, kostenstelle = Kern_Buchung.int_from_string(value_dict[u'Kostenrechnung 1'], True, True, u'Kostenstelle')
         if self.fehler_beschreibung:
             return None
+        kern_buchung.kostenstelle = self.konfiguration.kostenstelle_from_finesse_kostenstelle(kostenstelle)
 
         kern_buchung.betrag_soll = decimal_with_decimalcomma(value_dict[u'Betrag Soll'])
         kern_buchung.betrag_haben = decimal_with_decimalcomma(value_dict[u'Betrag Haben'])

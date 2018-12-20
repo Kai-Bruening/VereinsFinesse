@@ -67,7 +67,7 @@ class VF_Buchung:
         # Die Quellwerte werden für den Fall einer Fehlerausgabe gemerkt.
         self.source_values = value_dict
 
-        self.kern_buchung = self.kern_buchung_from_vf_export(value_dict);
+        self.kern_buchung = self.kern_buchung_from_vf_export(value_dict)
         if not self.kern_buchung:
             return False
 
@@ -101,21 +101,18 @@ class VF_Buchung:
 
         self.fehler_beschreibung, (konto, konto_kostenstelle) = vf_read_konto(value_dict[u'Konto'], u'Konto')
         if self.fehler_beschreibung:
-            return False
+            return None
 
         self.fehler_beschreibung, (gegen_konto, gegen_konto_kostenstelle) = vf_read_konto(value_dict[u'G-Konto'], u'Gegenkonto')
         if self.fehler_beschreibung:
-            return False
+            return None
 
         konto = self.konfiguration.konto_from_vf_konto(konto)
         gegen_konto = self.konfiguration.konto_from_vf_konto(gegen_konto)
-
-        # Eine Buchung kann nur eine Kostenstelle haben.
-        if (konto_kostenstelle and gegen_konto_kostenstelle
-            and konto_kostenstelle != gegen_konto_kostenstelle):
-            self.fehler_beschreibung = u'Beide Konten haben Kostenstellen, die nicht übereinstimmen'
-            return False
-        kern_buchung.kostenstelle = konto_kostenstelle if konto_kostenstelle else gegen_konto_kostenstelle
+        self.fehler_beschreibung, kostenstelle = Kern_Buchung.int_from_string(value_dict[u'Kostenstelle'], True, True, u'Kostenstelle')
+        if self.fehler_beschreibung:
+            return None
+        kern_buchung.kostenstelle = self.konfiguration.kostenstelle_from_vf_kostenstelle(kostenstelle)
 
         #betrag = decimal_with_decimalcomma(value_dict[u'Betrag'])
         betrag_konto = decimal_with_decimalcomma(value_dict[u'Betrag(Konto)'])
@@ -321,7 +318,7 @@ class VF_Buchung:
 
     @classmethod
     def fieldnames_for_export_to_vf(cls):
-        return [u'Datum',u'Konto',u'Betrag',u'Gegenkonto',u'Steuerkonto',u'Mwst',u'Buchungstext',u'BelegArt',u'BelegNr']
+        return [u'Datum',u'Konto',u'Betrag',u'Gegenkonto',u'Steuerkonto',u'Mwst',u'Buchungstext',u'BelegArt',u'BelegNr',u'Kostenstelle']
 
 
 def vf_read_konto(dict_value, name):

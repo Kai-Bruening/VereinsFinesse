@@ -1,4 +1,4 @@
-Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr
-31.08.2017;1200;432;12054;;;Tätivaara/Rückerst. Diffenz LS;FD;6346
-31.08.2017;1200;432;12054;;;Tätivaara/Rückerst. Diffenz LS;FD;1081
-31.08.2017;1200;432;12059;;;Neumenn/Rückerst. Differenz LS;FD;1081
+Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr;Kostenstelle
+31.08.2017;1200;432;12054;;;Tätivaara/Rückerst. Diffenz LS;FD;6346;
+31.08.2017;1200;432;12054;;;Tätivaara/Rückerst. Diffenz LS;FD;1081;
+31.08.2017;1200;432;12059;;;Neumenn/Rückerst. Differenz LS;FD;1081;

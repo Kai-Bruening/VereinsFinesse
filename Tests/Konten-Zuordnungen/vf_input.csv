@@ -1,5 +1,5 @@
-Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto)
-"305662";"25.02.2016";"000099900";"1200";"95,70";"";"0";"Kontoausgleich neu";"";"0";"";"";"";"";"95,70";"H";"95,70";"-95,70";"0";
-"305661";"26.02.2016";"000099900";"1200";"95,70";"";"0";"Kontoausgleich schon übertragen";"";"0";"";"";"";"";"95,70";"H";"95,70";"-95,70";"0";
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle
+"305662";"25.02.2016";"000099900";"1200";"95,70";"";"0";"Kontoausgleich neu";"";"0";"";"";"";"";"95,70";"H";"95,70";"-95,70";"0";"";
+"305661";"26.02.2016";"000099900";"1200";"95,70";"";"0";"Kontoausgleich schon übertragen";"";"0";"";"";"";"";"95,70";"H";"95,70";"-95,70";"0";"";
 
-"520450";"31.08.2016";"11552";"1599";"16,41";"";"0";"Lampe Terasse";"FD";"63974";"";"";"";"";"16,41";"H";"16,41";"-16,41";"0";
+"520450";"31.08.2016";"11552";"1599";"16,41";"";"0";"Lampe Terasse";"FD";"63974";"";"";"";"";"16,41";"H";"16,41";"-16,41";"0";"";

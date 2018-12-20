@@ -1,2 +1,2 @@
-Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr
-11.09.2016;2111-980;800.00;8632-980;;;Spendenübertrag;FD;86074
+Datum;Konto;Betrag;Gegenkonto;Steuerkonto;Mwst;Buchungstext;BelegArt;BelegNr;Kostenstelle
+11.09.2016;2111;800.00;8632;;;Spendenübertrag;FD;86074;980
