@@ -324,7 +324,8 @@ class VF_Buchung:
 def vf_read_konto(dict_value, name):
     match = vf_konto_und_kostenstelle_expr.match(dict_value)
     if match:
-        return (None, (int(match.group(1)), int(match.group(2))))
+        fehler_beschreibung = u'Vereinsflieger-Kontonummern mit Kostenstelle ({0}) dürfen ab 2018 nicht mehr verwendet werden'.format(dict_value)
+        return (fehler_beschreibung, (None, None))
     else:
         fehler_beschreibung, konto = Kern_Buchung.int_from_string(dict_value, False, False, name)
         return (fehler_beschreibung, (konto, None))

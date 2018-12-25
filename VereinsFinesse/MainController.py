@@ -465,6 +465,8 @@ class MainController:
                 f_utf8.write(u"Folgende Buchungen aus Finesse können nicht verarbeitet werden:")
                 self.write_fehlerhafte_buchungen(self.fehlerhafte_finesse_buchungen, self.finesse_export_fieldnames, f)
                 f_utf8.write(u"")
+
+            f.close()
         else:
             try:
                 os.remove(path)
