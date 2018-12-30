@@ -1,0 +1,2 @@
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle
+"242123";"15.11.2015";"1200";"5155-221";"0,00";"1879";"7";"Gebührenabrechnung";"";"0";"20150014";"";"";"";"0,00";"H";"0";"0";"0";"";
