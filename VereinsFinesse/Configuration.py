@@ -34,6 +34,11 @@ class Konfiguration:
         self.konten_nummern_finesse_nach_abgleich = self.read_optional_dictionary_from_config(u'konten_nummern_finesse_nach_abgleich')
         self.konten_nummern_abgleich_nach_finesse = self.read_optional_dictionary_from_config(u'konten_nummern_abgleich_nach_finesse')
 
+        self.kostenstellen_vf_nach_abgleich = self.read_optional_dictionary_from_config(u'kostenstellen_vf_nach_abgleich')
+        self.kostenstellen_abgleich_nach_vf = self.read_optional_dictionary_from_config(u'kostenstellen_abgleich_nach_vf')
+        self.kostenstellen_finesse_nach_abgleich = self.read_optional_dictionary_from_config(u'kostenstellen_finesse_nach_abgleich')
+        self.kostenstellen_abgleich_nach_finesse = self.read_optional_dictionary_from_config(u'kostenstellen_abgleich_nach_finesse')
+
         if u'logge_stornierte_buchungen' in config_dict:
             self.logge_stornierte_buchungen = config_dict[u'logge_stornierte_buchungen']
         else:
@@ -76,16 +81,24 @@ class Konfiguration:
         return konto
 
     def kostenstelle_from_vf_kostenstelle(self, kostenstelle):
-        return kostenstelle # so far no mapping
+        if kostenstelle in self.kostenstellen_vf_nach_abgleich:
+            return self.kostenstellen_vf_nach_abgleich[kostenstelle]
+        return kostenstelle
 
     def vf_kostenstelle_from_kostenstelle(self, kostenstelle):
-        return kostenstelle # so far no mapping
+        if kostenstelle in self.kostenstellen_abgleich_nach_vf:
+            return self.kostenstellen_abgleich_nach_vf[kostenstelle]
+        return kostenstelle
 
     def kostenstelle_from_finesse_kostenstelle(self, kostenstelle):
-        return kostenstelle # so far no mapping
+        if kostenstelle in self.kostenstellen_finesse_nach_abgleich:
+            return self.kostenstellen_finesse_nach_abgleich[kostenstelle]
+        return kostenstelle
 
     def finesse_kostenstelle_from_kostenstelle(self, kostenstelle):
-        return kostenstelle # so far no mapping
+        if kostenstelle in self.kostenstellen_abgleich_nach_finesse:
+            return self.kostenstellen_abgleich_nach_finesse[kostenstelle]
+        return kostenstelle
 
 
 class Steuerfall(yaml.YAMLObject):

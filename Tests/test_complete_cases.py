@@ -113,6 +113,10 @@ class CompleteTestCases (unittest.TestCase):
         # Test der Fehlermeldung wenn VF-Kontonummern im alten Format <Konto>-<Kostenstelle> gefunden werden.
         self.do_test_in_directory(u'VF Konto altes Format mit Kostennummer')
 
+    def test_kostenstellen_mapping(self):
+        # Test von mappings von Kostenstellen zwischen den beiden Seiten
+        self.do_test_in_directory(u'Kostenstellen-Mapping')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

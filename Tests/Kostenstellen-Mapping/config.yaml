@@ -1,0 +1,129 @@
+# Konfigurations-Information für Vereinsfinesse zum Unit-Testen
+
+
+# Grundsätzlich werden alle Buchungen im VF nach Finesse übertragen. Hier können bestimmte Kontennummern-
+# bereiche von der Übertragung ausgenommen werden.
+# Buchungen mit einem der beiden Konten in den ausgenommen Bereichen werden nicht übertragen.
+ausgenommene_konten_vf_nach_finesse:
+  # Saldovortrag
+  - !Kontenbereich
+    start:          9000
+    ende:           9009
+
+  - !Kontenbereich
+    start:          1000
+    ende:           1009
+
+# Von Finesse in den VF werden nur Buchungen für Konten übernommen, deren Salden im VF aktuell gehalten werden
+# müssen. Zur Zeit sind das alle Konten, die Mitglieder betreffen, da deren Salden bei der Erzeugung von
+# Abrechnungen im VF gebraucht werden.
+# Buchungen mit einem der beiden Konten in den Bereichen werden übertragen.
+konten_finesse_nach_vf:
+  # Mitgliederkonten
+  - !Kontenbereich
+    start:          10000
+    ende:           19000
+
+  # Baustunden-Guthaben von Mitgliedern
+  - !Kontenbereich
+    start:          20000
+    ende:           29000
+
+# Aus dem Export aus Finesse geht nicht hervor, ob die Kostenstelle zum Soll- oder Habenkonto gehört.
+# Deshalb muss die Schnittstelle wissen, welche Konten eine Kostenstelle unterstützen.
+konten_mit_kostenstelle:
+  # Alle Ertrags- und Aufwandskonten können eine Kostenstelle haben. Zur Zeit sind diese gut durch einen
+  # Nummernbereich beschrieben
+  - !Kontenbereich
+    start:          2000
+    ende:           8910
+    
+kostenstellen_vf_nach_abgleich:
+  322: 4711
+  
+kostenstellen_abgleich_nach_vf:
+  4711: 322
+  
+kostenstellen_finesse_nach_abgleich:
+  222: 4711
+  
+kostenstellen_abgleich_nach_finesse:
+  4711: 222
+
+# Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
+# Steuercode für Finess zu bestimmen.
+
+vf_vorsteuer_konto:     1599
+vf_umsatzsteuer_konto:  1879
+
+steuerfaelle:
+  - !Steuerfall
+    code:           0
+    art:            vorsteuer
+    konto_finesse:  1570
+    seite:          soll
+    bezeichnung:    freie Eingabe Vorsteuer
+
+  - !Steuerfall
+    code:           1
+    art:            keine
+    konto_finesse:  1775
+    seite:          haben
+    bezeichnung:    Umsatzsteuerfrei
+    ust_satz:       0
+
+  - !Steuerfall
+    code:           2
+    art:            umsatzsteuer
+    konto_finesse:  1876
+    seite:          haben
+    bezeichnung:    7% Umsatzsteuer
+    ust_satz:       7
+
+  - !Steuerfall
+    code:           3
+    art:            umsatzsteuer
+    konto_finesse:  1870
+    seite:          haben
+    bezeichnung:    19% Umsatzsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           6
+    art:            vorsteuer
+    konto_finesse:  1569
+    seite:          soll
+    bezeichnung:    19% aufzuteilende Vorsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           8
+    art:            vorsteuer
+    konto_finesse:  1576
+    seite:          soll
+    bezeichnung:    7% Vorsteuer
+    ust_satz:       7
+
+  - !Steuerfall
+    code:           9
+    art:            vorsteuer
+    konto_finesse:  1570
+    seite:          soll
+    bezeichnung:    19% Vorsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           10
+    art:            vorsteuer
+    konto_finesse:  1570
+    seite:          soll
+    bezeichnung:    19% Vorsteuer
+    ust_satz:       19
+
+  - !Steuerfall
+    code:           7
+    art:            vorsteuer
+    konto_finesse:  1566
+    seite:          soll
+    bezeichnung:    7% aufzuteilende Vorsteuer
+    ust_satz:       7
