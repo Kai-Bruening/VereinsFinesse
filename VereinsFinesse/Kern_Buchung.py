@@ -30,16 +30,6 @@ class Kern_Buchung:
         self.rechnungsnummer = None
         self.belegnummer = None
 
-    def check_kostenstelle(self, konfiguration):
-        """
-        :param konfiguration: Configuration.Konfiguration
-        """
-        assert konfiguration
-
-        if (not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll)
-           and not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben)):
-            self.kostenstelle = None
-
     @property
     def konten_key_ohne_kostenstelle(self):
         """
@@ -162,20 +152,8 @@ class Kern_Buchung:
         """
         Überprüft ob diese Buchung zum VF exportiert werden kann und gibt eine Fehlerbeschreibung zurück falls nicht.
         Im Erfolgsfall ist das Ergbnis None.
+        Nach der Umstellung auf explizite Kostenstellen im VF ist hier zur Zeit nichts zu überprüfen.
         """
-        if not self.kostenstelle:
-            return None
-
-        # Bisher erlauben wir nur Buchungen, bei denen die Kostenstelle eindeutig zugeordnet werden kann.
-        if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_soll):
-            pass
- #           if konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben):
- #               return u'Buchung von Erfolgskonto zu Erfolgskonto, keine Zuordnung der Kostenstelle für Export zu VF möglich'
-        elif (not konfiguration.konten_mit_kostenstelle.enthaelt_konto(self.konto_haben)
-            and not konfiguration.konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_soll)
-            and not konfiguration.konten_die_kostenstelle_ignorieren.enthaelt_konto(self.konto_haben)):
-            return u'Kostenstelle kann für Export zu VF keinem der Konten zugeordnet werden'
-
         return None
 
     def subtract_betraege_von(self, andere_buchung):

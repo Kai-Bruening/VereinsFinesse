@@ -39,33 +39,6 @@ ausgenommene_konten_finesse_nach_vf:
     start:          9000
     ende:           9010
 
-# Aus dem Export aus Finesse geht nicht hervor, ob die Kostenstelle zum Soll- oder Habenkonto gehört.
-# Deshalb muss die Schnittstelle wissen, welche Konten eine Kostenstelle unterstützen.
-konten_mit_kostenstelle:
-  # Alle Ertrags- und Aufwandskonten können eine Kostenstelle haben. Zur Zeit sind diese gut durch einen
-  # Nummernbereich beschrieben
-  - !Kontenbereich
-    start:          2000
-    ende:           8910
-
-
-# Konten, die in Finesse Buchungen mit Kostenstelle auftauchen können, im VF aber ohne Kostenstelle
-# geführt werden.
-vf_konten_die_kostenstelle_ignorieren:
-  # Da die Anlagekonten niemals vom Vereinsflieger aus bebucht werden, müssen wir für sie auch keine
-  # Kostenstellen mitführen.
-  - !Kontenbereich
-    start:          0
-    ende:           700
-  # Buchungen aus Finesse mit einem Steuerkonto als explizitem Konto können eine Kostenstelle enthalten.
-  # Das wollen wir im VF nicht abbilden (der Stand der Steuerkonten in VF ist eh bedeutungslos).
-  - !Kontenbereich
-    start:          1599
-    ende:           1599
-  - !Kontenbereich
-    start:          1879
-    ende:           1879
-
 # Einige Kontennummern unterscheiden sich zwischen Finesse und VF.
 konten_nummern_vf_nach_finesse:
   # (hoffentlich) vorübergehender Fix für das Dorian Immler Kontenproblem

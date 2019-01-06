@@ -29,15 +29,6 @@ konten_finesse_nach_vf:
     start:          20000
     ende:           29000
 
-# Aus dem Export aus Finesse geht nicht hervor, ob die Kostenstelle zum Soll- oder Habenkonto gehört.
-# Deshalb muss die Schnittstelle wissen, welche Konten eine Kostenstelle unterstützen.
-konten_mit_kostenstelle:
-  # Alle Ertrags- und Aufwandskonten können eine Kostenstelle haben. Zur Zeit sind diese gut durch einen
-  # Nummernbereich beschrieben
-  - !Kontenbereich
-    start:          2000
-    ende:           8910
-
 # Änderungen der Kostenstelle im Vereinsflieger können für den Abgleich Richtung Finesse ignoriert werden.
 # Dass heißt, es werden dann in diesem Fall keine Stornos und Neubuchungen erzeugt.
 ignoriere_aenderung_der_kostenstelle: true

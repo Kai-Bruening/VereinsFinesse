@@ -34,15 +34,6 @@ konten_finesse_nach_vf:
     start:             0
     ende:           9999
 
-# Aus dem Export aus Finesse geht nicht hervor, ob die Kostenstelle zum Soll- oder Habenkonto gehört.
-# Deshalb muss die Schnittstelle wissen, welche Konten eine Kostenstelle unterstützen.
-konten_mit_kostenstelle:
-  # Alle Ertrags- und Aufwandskonten können eine Kostenstelle haben. Zur Zeit sind diese gut durch einen
-  # Nummernbereich beschrieben
-  - !Kontenbereich
-    start:          2000
-    ende:           8910
-
 # Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
 # Steuercode für Finess zu bestimmen.
 
