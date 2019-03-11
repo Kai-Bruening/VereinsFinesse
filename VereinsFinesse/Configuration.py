@@ -114,7 +114,18 @@ class Steuerfall(yaml.YAMLObject):
             assert art == steuerart.Umsatzsteuer
             self.art = steuerart.Umsatzsteuer
 
-        self.konto_finesse = state_dict['konto_finesse']
+        self.konto_finesse = None
+        self.konto_vf = None
+
+        # Belege beide Kontos mit dem Wert von 'konto' vor, dann korrigiere wie nötig.
+        if 'konto' in state_dict:
+            self.konto_finesse = state_dict['konto']
+            self.konto_vf = state_dict['konto']
+        if 'konto_finesse' in state_dict:
+            self.konto_finesse = state_dict['konto_finesse']
+        if 'konto_vf' in state_dict:
+            self.konto_vf = state_dict['konto_vf']
+
         self.bezeichnung = state_dict['bezeichnung']
         if 'ust_satz' in state_dict:
             self.ust_satz = Decimal(state_dict['ust_satz'])
@@ -147,36 +158,27 @@ def sind_steuerfaelle_aequivalent(steuerfall1, steuerfall2):
 class SteuerConfiguration:
 
     def __init__(self, config_dict):
-        self.vf_vorsteuer_konto = int(config_dict[u'vf_vorsteuer_konto'])
-        self.vf_umsatzsteuer_konto = int(config_dict[u'vf_umsatzsteuer_konto'])
         self.steuerfaelle = config_dict[u'steuerfaelle']
         # Nachschlagtabellen bauen.
         self.steuerfall_by_konto_finesse = {}
+        self.steuerfall_by_konto_vf = {}
         self.steuerfall_by_code = {}
         for fall in self.steuerfaelle:
             if fall.konto_finesse not in self.steuerfall_by_konto_finesse:  # use first one of duplicates (like code 10)
                 self.steuerfall_by_konto_finesse[fall.konto_finesse] = fall
+            if fall.konto_vf and (fall.konto_vf not in self.steuerfall_by_konto_vf):
+                self.steuerfall_by_konto_vf[fall.konto_vf] = fall
             self.steuerfall_by_code[fall.code] = fall
 
-    def steuerfall_for_vf_steuerkonto_and_steuersatz(self, konto, satz):
-        if konto == self.vf_vorsteuer_konto:
-            for fall in self.steuerfaelle:
-                if not fall.steuer_ins_haben:
-                    if fall.ust_satz == satz:
-                        return fall
-                    # Special case detection for "freie Eingabe Vorsteuer"
-                    if satz == Decimal(0) and not fall.ust_satz:
-                        return fall
-            return None
-        elif konto == self.vf_umsatzsteuer_konto:
-            for fall in self.steuerfaelle:
-                if fall.steuer_ins_haben and fall.ust_satz == satz:
+    def steuerfall_for_vf_steuerkonto_and_steuersatz(self, vf_konto, satz):
+        for fall in self.steuerfaelle:
+            if fall.konto_vf == vf_konto:
+                if fall.ust_satz == satz:
                     return fall
-            return None
-        elif konto in self.steuerfall_by_konto_finesse:
-            return self.steuerfall_by_konto_finesse[konto]
-        else:
-            return None
+                # Spezialfall für "freie Eingabe Vorsteuer"
+                if satz == Decimal(0) and not fall.ust_satz:
+                    return fall
+        return None
 
     def steuerfall_for_finesse_steuercode(self, steuercode):
         if steuercode not in self.steuerfall_by_code:
@@ -184,12 +186,7 @@ class SteuerConfiguration:
         return self.steuerfall_by_code[steuercode]
 
     def vf_steuer_konto_for_steuerfall(self, steuerfall):
-        steuer_konto = None
-        if steuerfall.art == steuerart.Vorsteuer:
-            steuer_konto = self.vf_vorsteuer_konto
-        elif steuerfall.art == steuerart.Umsatzsteuer:
-            steuer_konto = self.vf_umsatzsteuer_konto
-        return steuer_konto
+        return steuerfall.konto_vf
 
 
 class Kontenbereich(yaml.YAMLObject):

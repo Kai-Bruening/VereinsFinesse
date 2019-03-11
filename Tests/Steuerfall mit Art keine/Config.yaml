@@ -29,11 +29,6 @@ konten_finesse_nach_vf:
     start:          20000
     ende:           29000
 
-  # Für diesen Test müssen Buchungen zwischen Erfolgskonten eingeschlossen werden.
-  - !Kontenbereich
-    start:             0
-    ende:           9999
-
 # Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
 # Steuercode für Finess zu bestimmen.
 

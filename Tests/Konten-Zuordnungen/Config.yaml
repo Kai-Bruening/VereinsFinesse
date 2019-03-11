@@ -54,18 +54,19 @@ konten_nummern_finesse_nach_abgleich:
   1876: 1879
 
 #konten_nummern_abgleich_nach_finesse:
- 
-vf_vorsteuer_konto:     1599
-vf_umsatzsteuer_konto:  1879
 
 # Zuordnung von Steuercodes zu Steuersätzen und -konten. Wird benutzt, um beim Import vom Vereinsflieger den
 # Steuercode für Finess zu bestimmen.
+
+#vf_vorsteuer_konto:     1599
+#vf_umsatzsteuer_konto:  1879
 
 steuerfaelle:
   - !Steuerfall
     code:           0
     art:            vorsteuer
     konto_finesse:  1570
+    konto_vf:       1599
     seite:          soll
     bezeichnung:    freie Eingabe Vorsteuer
 
@@ -81,6 +82,7 @@ steuerfaelle:
     code:           2
     art:            umsatzsteuer
     konto_finesse:  1876
+    konto_vf:       1879
     seite:          haben
     bezeichnung:    7% Umsatzsteuer
     ust_satz:       7
@@ -89,6 +91,7 @@ steuerfaelle:
     code:           3
     art:            umsatzsteuer
     konto_finesse:  1870
+    konto_vf:       1879
     seite:          haben
     bezeichnung:    19% Umsatzsteuer
     ust_satz:       19
@@ -97,6 +100,7 @@ steuerfaelle:
     code:           6
     art:            vorsteuer
     konto_finesse:  1569
+    konto_vf:       1599
     seite:          soll
     bezeichnung:    19% aufzuteilende Vorsteuer
     ust_satz:       19
@@ -105,6 +109,7 @@ steuerfaelle:
     code:           8
     art:            vorsteuer
     konto_finesse:  1576
+    konto_vf:       1599
     seite:          soll
     bezeichnung:    7% Vorsteuer
     ust_satz:       7
@@ -113,6 +118,7 @@ steuerfaelle:
     code:           9
     art:            vorsteuer
     konto_finesse:  1570
+    konto_vf:       1599
     seite:          soll
     bezeichnung:    19% Vorsteuer
     ust_satz:       19
@@ -121,6 +127,7 @@ steuerfaelle:
     code:           10
     art:            vorsteuer
     konto_finesse:  1570
+    konto_vf:       1599
     seite:          soll
     bezeichnung:    19% Vorsteuer
     ust_satz:       19
@@ -129,6 +136,7 @@ steuerfaelle:
     code:           7
     art:            vorsteuer
     konto_finesse:  1566
+    konto_vf:       1599
     seite:          soll
     bezeichnung:    7% aufzuteilende Vorsteuer
     ust_satz:       7
