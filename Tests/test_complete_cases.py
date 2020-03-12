@@ -192,7 +192,7 @@ class CompleteTestCases (unittest.TestCase):
 
     def write_fehlerhafte_buchungen(self, test_dir, controller):
         if not controller.has_fehlerhafte_buchungen:
-            return None;
+            return None
         result_path = os.path.join(test_dir, u'fehler_result.csv')
         controller.report_fehlerhafte_buchungen(result_path)
         return result_path

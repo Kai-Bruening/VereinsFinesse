@@ -107,8 +107,18 @@ class VF_Buchung:
         if self.fehler_beschreibung:
             return None
 
+        # Im Vereinsflieger ist es irgendwie tatsächlich möglich, Buchungen mit identischen Konten einzugeben.
+        if gegen_konto == konto:
+            self.fehler_beschreibung = u'Identisches Konto ({0}) auf beiden Seiten der Buchung'.format(konto)
+            return None
+
         konto = self.konfiguration.konto_from_vf_konto(konto)
         gegen_konto = self.konfiguration.konto_from_vf_konto(gegen_konto)
+        # Das Kontomapping könnte ebenfalls die Konten gleich machen, also checke ich lieber noch mal.
+        if gegen_konto == konto:
+            self.fehler_beschreibung = u'Identisches Konto ({0}) auf beiden Seiten der Buchung nach Kontenmapping'.format(konto)
+            return None
+
         self.fehler_beschreibung, kostenstelle = Kern_Buchung.int_from_string(value_dict[u'Kostenstelle'], True, True, u'Kostenstelle')
         if self.fehler_beschreibung:
             return None
