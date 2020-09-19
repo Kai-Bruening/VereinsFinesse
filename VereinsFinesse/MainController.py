@@ -81,7 +81,7 @@ class MainController:
                 self.exportFinesseBuchungenToVF(finesse_export_list, f)
 
             if len(vf_exportList) > 0:
-                f = open(finesse_import_file_name , 'wb')
+                f = open(finesse_import_file_name, 'wb')
                 self.exportVFBuchungenToFinesse(vf_exportList, f)
 
         except StopRun:

@@ -160,15 +160,20 @@ class SteuerConfiguration:
     def __init__(self, config_dict):
         self.steuerfaelle = config_dict[u'steuerfaelle']
         # Nachschlagtabellen bauen.
-        self.steuerfall_by_konto_finesse = {}
-        self.steuerfall_by_konto_vf = {}
-        self.steuerfall_by_code = {}
+        #self.steuerfall_by_konto_finesse = {}
+        #self.steuerfall_by_konto_vf = {}
+        #self.steuerfall_by_code = {}
+        self.steuerfaelle_by_code = {}
         for fall in self.steuerfaelle:
-            if fall.konto_finesse not in self.steuerfall_by_konto_finesse:  # use first one of duplicates (like code 10)
-                self.steuerfall_by_konto_finesse[fall.konto_finesse] = fall
-            if fall.konto_vf and (fall.konto_vf not in self.steuerfall_by_konto_vf):
-                self.steuerfall_by_konto_vf[fall.konto_vf] = fall
-            self.steuerfall_by_code[fall.code] = fall
+            #if fall.konto_finesse not in self.steuerfall_by_konto_finesse:  # use first one of duplicates (like code 10)
+            #    self.steuerfall_by_konto_finesse[fall.konto_finesse] = fall
+            #if fall.konto_vf and (fall.konto_vf not in self.steuerfall_by_konto_vf):
+            #    self.steuerfall_by_konto_vf[fall.konto_vf] = fall
+            #self.steuerfall_by_code[fall.code] = fall
+            if fall.code not in self.steuerfaelle_by_code:
+                self.steuerfaelle_by_code[fall.code] = [fall]
+            else:
+                self.steuerfaelle_by_code[fall.code].append(fall)
 
     def steuerfall_for_vf_steuerkonto_and_steuersatz(self, vf_konto, satz):
         for fall in self.steuerfaelle:
@@ -180,10 +185,18 @@ class SteuerConfiguration:
                     return fall
         return None
 
-    def steuerfall_for_finesse_steuercode(self, steuercode):
-        if steuercode not in self.steuerfall_by_code:
+    #def steuerfall_for_finesse_steuercode(self, steuercode):
+    #    if steuercode not in self.steuerfall_by_code:
+    #        return None
+    #    return self.steuerfall_by_code[steuercode]
+
+    def steuerfall_for_finesse_steuercode_and_steuersatz(self, steuercode, satz):
+        if steuercode not in self.steuerfaelle_by_code:
             return None
-        return self.steuerfall_by_code[steuercode]
+        for fall in self.steuerfaelle_by_code[steuercode]:
+            if fall.ust_satz == satz:
+                return fall
+        return None
 
     def vf_steuer_konto_for_steuerfall(self, steuerfall):
         return steuerfall.konto_vf

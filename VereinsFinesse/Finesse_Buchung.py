@@ -121,9 +121,24 @@ class Finesse_Buchung:
             self.fehler_beschreibung, steuercode = Kern_Buchung.int_from_string(steuercode_text, False, False, u'Steuercode')
             if self.fehler_beschreibung:
                 return None
-            kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
+
+            kern_buchung.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
+            kern_buchung.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
+
+            # Steuersatz berechnen um zwischen mehrfach belegten Steuercodes unterscheiden zu können.
+            steuersatz = Decimal(0)
+            if kern_buchung.steuer_betrag_soll > 0:
+                steuersatz = kern_buchung.steuer_betrag_soll / kern_buchung.betrag_soll
+            elif kern_buchung.steuer_betrag_haben > 0:
+                steuersatz = kern_buchung.steuer_betrag_haben / kern_buchung.betrag_haben
+            if isinstance(steuersatz, int):
+                print steuersatz
+            steuersatz = int(round_to_two_places(steuersatz) * 100)
+            kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode_and_steuersatz(steuercode, steuersatz)
+
+            #kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
             if not kern_buchung.steuerfall:
-                self.fehler_beschreibung = u'Unbekannter Steuercode ({0})'.format(steuercode)
+                self.fehler_beschreibung = u'Unbekannte Kombination Steuercode und Steuersatz ({0}/{1})'.format(steuercode, steuersatz)
                 return None
 
             # Das Steuerkonto aus Finesse muss zum Steuercode passen.
@@ -132,8 +147,6 @@ class Finesse_Buchung:
                                             .format(steuer_konto, steuercode))
                 return None
 
-            kern_buchung.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
-            kern_buchung.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
         else:
             # Kein Steuercode angegeben, dann muss das übrige Steuerzeugs leer oder 0 sein.
             if (   steuer_konto != None
