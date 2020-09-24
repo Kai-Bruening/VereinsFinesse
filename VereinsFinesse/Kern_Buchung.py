@@ -179,7 +179,7 @@ class Kern_Buchung:
 
         # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
         result = {}
-        result[u'Datum'] = self.datum
+        result[u'Datum'] = self.datum.strftime('%d.%m.%Y')
         result[u'Buchungstext'] = self.buchungstext
 
         # Der Normalfall ist, das Habenkonto auf 'Konto' im VF abzubilden. Bei positivem Betrag wird dieses Konto
@@ -228,7 +228,7 @@ class Kern_Buchung:
 
         # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
         result = {}
-        result[u'Datum'] = self.datum
+        result[u'Datum'] = self.datum.strftime('%d.%m.%Y')
         result[u'Buchungstext'] = self.buchungstext
         result[u'Konto Soll'] = self.konto_soll
         result[u'Konto Haben'] = self.konto_haben

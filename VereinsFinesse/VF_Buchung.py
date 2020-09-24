@@ -6,6 +6,7 @@ import re
 import math
 import decimal
 from decimal import Decimal
+import datetime
 import Configuration
 import CheckDigit
 import Kern_Buchung
@@ -95,9 +96,15 @@ class VF_Buchung:
 
     def kern_buchung_from_vf_export(self, value_dict):
         kern_buchung = Kern_Buchung.Kern_Buchung()
-
-        kern_buchung.datum = value_dict[u'Datum']
         kern_buchung.buchungstext = value_dict[u'Buchungstext']
+
+        #kern_buchung.datum = value_dict[u'Datum']
+        text_datum = value_dict[u'Datum']
+        try:
+            kern_buchung.datum = datetime.datetime.strptime(text_datum, '%d.%m.%Y').date()
+        except:
+            self.fehler_beschreibung = u'Datum ({0}) nicht erkannt'.format(text_datum)
+            return None
 
         self.fehler_beschreibung, (konto, konto_kostenstelle) = vf_read_konto(value_dict[u'Konto'], u'Konto')
         if self.fehler_beschreibung:

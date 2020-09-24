@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import yaml
+import datetime
 from decimal import Decimal
 
 
@@ -135,11 +136,30 @@ class Steuerfall(yaml.YAMLObject):
         assert seite_text == 'soll' or seite_text == 'haben'
         self.steuer_ins_haben = seite_text == 'haben'
 
+        if 'gueltigkeiten' in state_dict:
+            self.gueltigkeiten = state_dict['gueltigkeiten']
+
     def matches_vf_steuerfall(self, vf_steuerfall):
         if not vf_steuerfall:
             return not self.ust_satz or self.ust_satz == Decimal(0)
         return (self.art == vf_steuerfall.art
                 and self.ust_satz == vf_steuerfall.ust_satz)
+
+
+class Datumsbereich(yaml.YAMLObject):
+    yaml_tag = u'!Datumsbereich'
+
+    def __setstate__(self, state_dict):
+        if 'anfang' in state_dict:
+            self.anfang = state_dict['anfang']
+            assert(isinstance(self.anfang, datetime.date))
+        else:
+            self.anfang = None
+        if 'ende' in state_dict:
+            self.ende = state_dict['ende']
+            assert(isinstance(self.ende, datetime.date))
+        else:
+            self.ende = None
 
 
 def sind_steuerfaelle_aequivalent(steuerfall1, steuerfall2):
@@ -189,6 +209,11 @@ class SteuerConfiguration:
     #    if steuercode not in self.steuerfall_by_code:
     #        return None
     #    return self.steuerfall_by_code[steuercode]
+
+    def steuerfaelle_for_finesse_steuercode(self, steuercode):
+        if steuercode not in self.steuerfaelle_by_code:
+            return None
+        return self.steuerfaelle_by_code[steuercode]
 
     def steuerfall_for_finesse_steuercode_and_steuersatz(self, steuercode, satz):
         if steuercode not in self.steuerfaelle_by_code:

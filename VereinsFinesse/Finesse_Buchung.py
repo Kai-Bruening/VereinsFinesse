@@ -6,6 +6,7 @@ import re
 import math
 import decimal
 from decimal import Decimal
+import datetime
 import Configuration
 import CheckDigit
 import Kern_Buchung
@@ -87,9 +88,16 @@ class Finesse_Buchung:
 
     def kern_buchung_from_finesse_export(self, value_dict):
         kern_buchung = Kern_Buchung.Kern_Buchung()
-
-        kern_buchung.datum = value_dict[u'Belegdatum']
         kern_buchung.buchungstext = value_dict[u'Buchungs-Text']
+
+        text_datum = value_dict[u'Belegdatum']
+        #t = datetime.datetime.strptime(text_datum, '%d.%m.%Y')
+        #d = t.date()
+        try:
+            kern_buchung.datum = datetime.datetime.strptime(text_datum, '%d.%m.%Y').date()
+        except:
+            self.fehler_beschreibung = u'Belegdatum ({0}) nicht erkannt'.format(text_datum)
+            return None
 
         self.fehler_beschreibung, konto = Kern_Buchung.int_from_string(value_dict[u'Konto Soll'], False, False, u'Konto Soll')
         if self.fehler_beschreibung:
@@ -125,16 +133,20 @@ class Finesse_Buchung:
             kern_buchung.steuer_betrag_soll = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Soll'])
             kern_buchung.steuer_betrag_haben = decimal_with_decimalcomma(value_dict[u'Steuerbetrag Haben'])
 
+            kern_buchung.steuerfall = self.steuerfall_fuer_finesse_export(kern_buchung, steuercode)
+            if kern_buchung.steuerfall == None:
+                return None
+
             # Steuersatz berechnen um zwischen mehrfach belegten Steuercodes unterscheiden zu können.
-            steuersatz = Decimal(0)
-            if kern_buchung.steuer_betrag_soll > 0:
-                steuersatz = kern_buchung.steuer_betrag_soll / kern_buchung.betrag_soll
-            elif kern_buchung.steuer_betrag_haben > 0:
-                steuersatz = kern_buchung.steuer_betrag_haben / kern_buchung.betrag_haben
-            if isinstance(steuersatz, int):
-                print steuersatz
-            steuersatz = int(round_to_two_places(steuersatz) * 100)
-            kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode_and_steuersatz(steuercode, steuersatz)
+            #steuersatz = Decimal(0)
+            #if kern_buchung.steuer_betrag_soll != 0:
+            #    steuersatz = kern_buchung.steuer_betrag_soll / kern_buchung.betrag_soll
+            #elif kern_buchung.steuer_betrag_haben != 0:
+            #    steuersatz = kern_buchung.steuer_betrag_haben / kern_buchung.betrag_haben
+            #if isinstance(steuersatz, int):
+            #    print steuersatz
+            #steuersatz = int(round_to_two_places(steuersatz) * 100)
+            #kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode_and_steuersatz(steuercode, steuersatz)
 
             #kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
             if not kern_buchung.steuerfall:
@@ -162,6 +174,62 @@ class Finesse_Buchung:
         #TODO: kern_buchung.belegnummer
 
         return kern_buchung
+
+    def steuerfall_fuer_finesse_export(self, kern_buchung, steuercode):
+        # Leider wird der gleiche Steuercodes in Finesse wiederverwendet, wenn sich der Steuersatz ändert.
+        # Da der Steuersatz nicht in der Exportdatei steht, müssen wir ihn hier bestimmen.
+
+        # Mögliche Steuerfölle laden.
+        steuerfaelle = self.konfiguration.steuer_configuration.steuerfaelle_for_finesse_steuercode(steuercode)
+
+        # Keiner? Fehler
+        if steuerfaelle == None:
+            self.fehler_beschreibung = u'Unbekannter Steuercode ({0})'.format(steuercode)
+            return None
+
+        # Nur einer? Fertig
+        if len(steuerfaelle) == 1:
+            return steuerfaelle[0]
+
+        # Netto und Steuerbetrag raussuchen.
+        if kern_buchung.steuer_betrag_soll != 0:
+            netto = abs(kern_buchung.betrag_soll)
+            steuer = abs(kern_buchung.steuer_betrag_soll)
+        else:
+            netto = abs(kern_buchung.betrag_haben)
+            steuer = abs(kern_buchung.steuer_betrag_haben)
+
+        # Steuerfälle durchgehen und für jeden den Steuerbetrag berechnen.
+        kandidaten = []
+        for fall in steuerfaelle:
+            test_steuer = netto * Decimal(fall.ust_satz) / Decimal(100)
+            # Passt innerhalb eines Cents?
+            if abs(test_steuer - steuer) <= Decimal(0.01):
+                # Als Kandidat merken.
+                kandidaten.append(fall)
+
+        # Kein Kandidat -> Fehler
+        if len(kandidaten) == 0:
+            self.fehler_beschreibung = u'Steuercode ({0}) passt nicht zu den Beträgen'.format(steuercode)
+            return None
+
+        # Ein Kandidat -> fertig
+        if len(kandidaten) == 1:
+            return kandidaten[0]
+
+        # Über Datum entscheiden.
+        for fall in kandidaten:
+            for gueltigkeit in fall.gueltigkeiten:
+                if gueltigkeit.anfang != None:
+                    if kern_buchung.datum < gueltigkeit.anfang:
+                        continue
+                if gueltigkeit.ende != None:
+                    if kern_buchung.datum > gueltigkeit.ende:
+                        continue
+                return fall
+
+        self.fehler_beschreibung = u'Kein gültiger Steuerfall zu Steuercode {0} gefunden'.format(steuercode)
+        return None
 
     @property
     def kompatible_buchungen_key(self):

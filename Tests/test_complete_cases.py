@@ -117,6 +117,10 @@ class CompleteTestCases (unittest.TestCase):
         # Test von mappings von Kostenstellen zwischen den beiden Seiten
         self.do_test_in_directory(u'Kostenstellen-Mapping')
 
+    def test_mehrfach_belegte_Steuercodes(self):
+        # Überraschenderweise belegt Finesse Steuercodes mehrfach wenn sich der Umsatzsteuersatz ändert.
+        self.do_test_in_directory(u'Mehrfach belegte Steuercodes')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 
