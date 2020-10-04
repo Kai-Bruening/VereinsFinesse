@@ -52,8 +52,8 @@ class Kern_Buchung:
     def kompatible_buchungen_key(self, mit_kostenstelle):
         """
         Erzeugt einen Schlüssel, der für untereinander kompatible Buchungen gleich ist.
-        Buchungen sind kompatibel, wenn sie zwischen den gleichen zwei Konten mit dem gleichen Steuerfall und der
-        gleichen Kostenstelle buchen.
+        Buchungen sind kompatibel, wenn sie zwischen den gleichen zwei Konten mit dem gleichen Steuerfall
+        und -satz und der gleichen Kostenstelle buchen.
          :rtype: list
         """
         if mit_kostenstelle:
@@ -61,9 +61,11 @@ class Kern_Buchung:
         else:
             key = self.konten_key_ohne_kostenstelle
         steuercode = None
+        steuersatz = 0
         if self.steuerfall:
             steuercode = self.steuerfall.code
-        return key + (steuercode , )
+            steuersatz = self.steuerfall.ust_satz
+        return key + (steuercode, steuersatz)
 
     @property
     def is_null(self):
@@ -228,7 +230,6 @@ class Kern_Buchung:
 
         # Note: fehlende Dict-Einträge werden automatisch als Leerstrings exportiert.
         result = {}
-        result[u'Datum'] = self.datum.strftime('%d.%m.%Y')
         result[u'Buchungstext'] = self.buchungstext
         result[u'Konto Soll'] = self.konto_soll
         result[u'Konto Haben'] = self.konto_haben
@@ -252,8 +253,14 @@ class Kern_Buchung:
             assert self.betrag_soll == self.betrag_haben
             result[u'Betrag'] = self.betrag_soll
 
+        export_datum = self.datum
         if self.steuerfall:
             result[u'USt-Code'] = self.steuerfall.code
+            export_datum, was_adjusted = self.steuerfall.adjust_datum(export_datum)
+            if was_adjusted:
+                result[u'Notiz'] = u'Belegdatum korrigiert für Steuercode {0} mit Satz {1}%, im VF: {2}'.format(self.steuerfall.code, self.steuerfall.ust_satz, self.datum.strftime('%d.%m.%Y'))
+
+        result[u'Datum'] = export_datum.strftime('%d.%m.%Y')
 
         if self.kostenstelle:
             result[u'Kostenrechnungsobjekt 1'] = konfiguration.finesse_kostenstelle_from_kostenstelle(self.kostenstelle)

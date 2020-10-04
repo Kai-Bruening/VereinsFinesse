@@ -1,0 +1,3 @@
+Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle;Gebührenbereich;Typ
+"3593835";"02.09.2020";"5157";"11531";"-102,96";"1876";"7.00";"Fluggebühren 1";"";"0";"20201722";"2";"";"";"102,96";"S";"-96,22";"102,96";"-6,74";"128";"128";"SR";
+"3666259";"02.09.2020";"5157";"11531";"-102,96";"1876";"7.00";"Fluggebühren 2";"";"0";"20201722";"2";"";"";"102,96";"S";"-96,22";"102,96";"-6,74";"128";"128";"SR";

@@ -1,5 +1,5 @@
-Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr
-15.11.2015;Gebührenabrechnung;-1.08;2;-0.07;5155;11564;222;20150014;;2421220
-15.11.2015;Gebührenabrechnung;0.54;2;0.04;5155;11564;222;20150015;;2421261
-12.04.2015;Kontoausgleich SEPA;63.36;;;11564;1222;;;4711;1327048
-20.03.2015;Storno wegen Löschung im VF: Buchung gelöscht im VF;-10.70;2;-0.70;5155;11564;;;;2421337
+Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr;Notiz
+15.11.2015;Gebührenabrechnung;-1.08;2;-0.07;5155;11564;222;20150014;;2421220;
+15.11.2015;Gebührenabrechnung;0.54;2;0.04;5155;11564;222;20150015;;2421261;
+12.04.2015;Kontoausgleich SEPA;63.36;;;11564;1222;;;4711;1327048;
+20.03.2015;Storno wegen Löschung im VF: Buchung gelöscht im VF;-10.70;2;-0.70;5155;11564;;;;2421337;

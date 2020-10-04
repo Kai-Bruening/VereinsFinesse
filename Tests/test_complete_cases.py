@@ -121,6 +121,10 @@ class CompleteTestCases (unittest.TestCase):
         # Überraschenderweise belegt Finesse Steuercodes mehrfach wenn sich der Umsatzsteuersatz ändert.
         self.do_test_in_directory(u'Mehrfach belegte Steuercodes')
 
+    def test_storno_wegen_steuersatzaenderung_mit_gleichem_steuercode(self):
+        # Bei Änderung des Steuersatzes im VF muss die Finesse-Buchung storniert und neu angelegt werden.
+        self.do_test_in_directory(u'Storno wegen Steuersatzaenderung mit gleichem Steuercode')
+
     def do_test_in_directory(self, test_dir):
         controller = VereinsFinesse.MainController.MainController()
 

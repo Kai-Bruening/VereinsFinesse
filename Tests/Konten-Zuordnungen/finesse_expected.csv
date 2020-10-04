@@ -1,2 +1,2 @@
-Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr
-25.02.2016;Kontoausgleich neu;95.70;;;11947;1200;;;;3056629
+Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr;Notiz
+25.02.2016;Kontoausgleich neu;95.70;;;11947;1200;;;;3056629;

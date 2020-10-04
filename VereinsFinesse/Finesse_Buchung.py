@@ -217,16 +217,11 @@ class Finesse_Buchung:
         if len(kandidaten) == 1:
             return kandidaten[0]
 
-        # Über Datum entscheiden.
+        # Uneindeutig: über Datum entscheiden.
         for fall in kandidaten:
             for gueltigkeit in fall.gueltigkeiten:
-                if gueltigkeit.anfang != None:
-                    if kern_buchung.datum < gueltigkeit.anfang:
-                        continue
-                if gueltigkeit.ende != None:
-                    if kern_buchung.datum > gueltigkeit.ende:
-                        continue
-                return fall
+                if gueltigkeit.test_datum(kern_buchung.datum) == u'innerhalb':
+                    return fall
 
         self.fehler_beschreibung = u'Kein gültiger Steuerfall zu Steuercode {0} gefunden'.format(steuercode)
         return None
@@ -277,7 +272,7 @@ class Finesse_Buchung:
 
     @classmethod
     def fieldnames_for_export_to_finesse(cls):
-        return [u'Datum',u'Buchungstext',u'Betrag',u'USt-Code',u'Betrag USt',u'Konto Haben',u'Konto Soll',u'Kostenrechnungsobjekt 1',u'Rechnungsnummer',u'Belegnummer 1',u'VF_Nr']
+        return [u'Datum',u'Buchungstext',u'Betrag',u'USt-Code',u'Betrag USt',u'Konto Haben',u'Konto Soll',u'Kostenrechnungsobjekt 1',u'Rechnungsnummer',u'Belegnummer 1',u'VF_Nr',u'Notiz']
 
     def lookup_storno_partner(self, storno_candidates):
         """

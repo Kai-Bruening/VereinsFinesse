@@ -138,12 +138,45 @@ class Steuerfall(yaml.YAMLObject):
 
         if 'gueltigkeiten' in state_dict:
             self.gueltigkeiten = state_dict['gueltigkeiten']
+        else:
+            self.gueltigkeiten = None
 
     def matches_vf_steuerfall(self, vf_steuerfall):
         if not vf_steuerfall:
             return not self.ust_satz or self.ust_satz == Decimal(0)
         return (self.art == vf_steuerfall.art
                 and self.ust_satz == vf_steuerfall.ust_satz)
+
+    def adjust_datum(self, datum):
+        if not self.gueltigkeiten:
+            return (datum, False)
+        year = datum.year
+        adjusted_date = None
+        min_adjustment_delta = None
+        for gueltigkeit in self.gueltigkeiten:
+            pos = gueltigkeit.test_datum(datum)
+            if pos == u'innerhalb':
+                return (datum, False)
+            if pos == u'früher':
+                if gueltigkeit.anfang.year == year:
+                    if adjusted_date == None:
+                        adjusted_date = gueltigkeit.anfang
+                    else:
+                        adjustment_delta = gueltigkeit.anfang - datum
+                        if adjustment_delta < min_adjustment_delta:
+                            adjusted_date = gueltigkeit.anfang
+                            min_adjustment_delta = adjustment_delta
+            elif pos == u'später':
+                if gueltigkeit.ende.year == year:
+                    if adjusted_date == None:
+                        adjusted_date = gueltigkeit.ende
+                    else:
+                        adjustment_delta = datum - gueltigkeit.ende
+                        if adjustment_delta < min_adjustment_delta:
+                            adjusted_date = gueltigkeit.ende
+                            min_adjustment_delta = adjustment_delta
+        assert(adjusted_date != None)
+        return (adjusted_date, True)
 
 
 class Datumsbereich(yaml.YAMLObject):
@@ -160,6 +193,15 @@ class Datumsbereich(yaml.YAMLObject):
             assert(isinstance(self.ende, datetime.date))
         else:
             self.ende = None
+
+    def test_datum(self, datum):
+        if self.anfang != None:
+            if datum < self.anfang:
+                return u'früher'
+        if self.ende != None:
+            if datum > self.ende:
+                return u'später'
+        return u'innerhalb'
 
 
 def sind_steuerfaelle_aequivalent(steuerfall1, steuerfall2):
