@@ -1,0 +1,4 @@
+﻿Folgende Buchungen aus dem Vereinsflieger können nicht verarbeitet werden:
+Fehler;Nr;Datum;Konto;G-Konto;Betrag;S-Konto;MwSt(%);Buchungstext;Belegart;Belegnummer;Abrechnungsnr;Steuercode;Steuercode(G-Konto);Steuercode(S-Konto);Betrag(OhneVz);Soll/Haben;Betrag(Konto);Betrag(G-Konto);Betrag(S-Konto);Kostenstelle;Gebührenbereich;Typ
+Steuercode 3 mit Steuersatz 16.00% gibt es im Jahr 2021 nicht;3734875;17.01.2021;1002;7076;-7,50;1870;16.00;Landegebühr;;0;20210050;;3;;7,50;S;-7,50;6,47;1,03;902;902;V
+

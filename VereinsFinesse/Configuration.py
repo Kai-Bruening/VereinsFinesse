@@ -147,6 +147,14 @@ class Steuerfall(yaml.YAMLObject):
         return (self.art == vf_steuerfall.art
                 and self.ust_satz == vf_steuerfall.ust_satz)
 
+    def valid_in_year(self, year):
+        if not self.gueltigkeiten:
+            return True
+        for gueltigkeit in self.gueltigkeiten:
+            if gueltigkeit.contains_year(year):
+                return True
+        return False
+
     def adjust_datum(self, datum):
         if not self.gueltigkeiten:
             return (datum, False)
@@ -193,6 +201,15 @@ class Datumsbereich(yaml.YAMLObject):
             assert(isinstance(self.ende, datetime.date))
         else:
             self.ende = None
+
+    def contains_year(self, year):
+        if self.anfang != None:
+            if year < self.anfang.year:
+                return False
+        if self.ende != None:
+            if year > self.ende.year:
+                return False
+        return True
 
     def test_datum(self, datum):
         if self.anfang != None:

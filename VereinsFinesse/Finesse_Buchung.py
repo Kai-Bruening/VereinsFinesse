@@ -137,18 +137,6 @@ class Finesse_Buchung:
             if kern_buchung.steuerfall == None:
                 return None
 
-            # Steuersatz berechnen um zwischen mehrfach belegten Steuercodes unterscheiden zu können.
-            #steuersatz = Decimal(0)
-            #if kern_buchung.steuer_betrag_soll != 0:
-            #    steuersatz = kern_buchung.steuer_betrag_soll / kern_buchung.betrag_soll
-            #elif kern_buchung.steuer_betrag_haben != 0:
-            #    steuersatz = kern_buchung.steuer_betrag_haben / kern_buchung.betrag_haben
-            #if isinstance(steuersatz, int):
-            #    print steuersatz
-            #steuersatz = int(round_to_two_places(steuersatz) * 100)
-            #kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode_and_steuersatz(steuercode, steuersatz)
-
-            #kern_buchung.steuerfall = self.konfiguration.steuer_configuration.steuerfall_for_finesse_steuercode(steuercode)
             if not kern_buchung.steuerfall:
                 self.fehler_beschreibung = u'Unbekannte Kombination Steuercode und Steuersatz ({0}/{1})'.format(steuercode, steuersatz)
                 return None
@@ -215,7 +203,12 @@ class Finesse_Buchung:
 
         # Ein Kandidat -> fertig
         if len(kandidaten) == 1:
-            return kandidaten[0]
+            fall = kandidaten[0]
+            year = kern_buchung.datum.year
+            if not fall.valid_in_year(year):
+                self.fehler_beschreibung = u'Steuercode {0} mit Steuersatz {1} gibt es im Jahr {2} nicht'.format(steuercode, fall.ust_satz, year)
+                return None
+            return fall
 
         # Uneindeutig: über Datum entscheiden.
         for fall in kandidaten:
