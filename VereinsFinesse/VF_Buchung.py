@@ -149,10 +149,6 @@ class VF_Buchung:
             if not kern_buchung.steuerfall:
                 self.fehler_beschreibung = u'Kombination aus Steuerkonto ({0}) und Steuersatz ({1}%) unbekannt'.format(steuer_konto, steuer_satz)
                 return None
-            year = kern_buchung.datum.year
-            if not kern_buchung.steuerfall.valid_in_year(year):
-                self.fehler_beschreibung = u'Steuercode {0} mit Steuersatz {1}% gibt es im Jahr {2} nicht'.format(kern_buchung.steuerfall.code, steuer_satz, year)
-                return None
 
             # Der Steuersatz aus dem Vereinsflieger muss zum Steuerkonto passen.
             if (steuer_satz != kern_buchung.steuerfall.ust_satz

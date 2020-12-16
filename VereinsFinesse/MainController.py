@@ -46,6 +46,7 @@ class MainController:
 
         self.fehlerhafte_vf_buchungen = []
         self.fehlerhafte_finesse_buchungen = []
+        self.finesse_export_dicts_mit_korrigierbedarf = []
 
     def run(self):
         # argparse exits on error after printing a message - no need to modify this.
@@ -97,6 +98,8 @@ class MainController:
                     self.protokoll_stream.writelines([u"{0} Buchungen aus dem Vereinsflieger konnten nicht bearbeitet werden.".format(len(self.fehlerhafte_vf_buchungen)), os.linesep])
                 if len(self.fehlerhafte_finesse_buchungen) > 0:
                     self.protokoll_stream.writelines([u"{0} Buchungen aus Finesse konnten nicht bearbeitet werden.".format(len(self.fehlerhafte_finesse_buchungen)), os.linesep])
+                if len(self.finesse_export_dicts_mit_korrigierbedarf) > 0:
+                    self.protokoll_stream.writelines([u"{0} in Finesse importierte Buchungen müssen korrigiert werden.".format(len(self.finesse_export_dicts_mit_korrigierbedarf)), os.linesep])
                 self.protokoll_stream.writelines([u"Siehe „{0}“ für Details.".format(fehler_file_name), os.linesep])
             else:
                 self.protokoll_stream.writelines([u"Datenaustausch ohne Fehler beendet.", os.linesep])
@@ -322,6 +325,11 @@ class MainController:
         writer.writeheader()
         for vfBuchung in vfBuchungen:
             for finesse_dict in vfBuchung.dicts_for_export_to_finesse:
+                if u'Korrekturanweisung' in finesse_dict:
+                    report_dict = finesse_dict.copy()
+                    del report_dict[u'Notiz']
+                    self.finesse_export_dicts_mit_korrigierbedarf.append(report_dict)
+                    del finesse_dict[u'Korrekturanweisung']
                 writer.writerow(finesse_dict)
 
     def connectImportedVFBuchungen(self):
@@ -445,7 +453,7 @@ class MainController:
 
     @property
     def has_fehlerhafte_buchungen(self):
-        return len(self.fehlerhafte_vf_buchungen) > 0 or len(self.fehlerhafte_finesse_buchungen) > 0
+        return len(self.fehlerhafte_vf_buchungen) > 0 or len(self.fehlerhafte_finesse_buchungen) > 0 or len(self.finesse_export_dicts_mit_korrigierbedarf) > 0
 
     def report_fehlerhafte_buchungen(self, path):
         if self.has_fehlerhafte_buchungen:
@@ -465,6 +473,11 @@ class MainController:
                 f_utf8.write(u"Folgende Buchungen aus Finesse können nicht verarbeitet werden:")
                 self.write_fehlerhafte_buchungen(self.fehlerhafte_finesse_buchungen, self.finesse_export_fieldnames, f)
                 f_utf8.write(u"")
+
+            if len(self.finesse_export_dicts_mit_korrigierbedarf) > 0:
+                f_utf8.writelines([u"Folgende in Finesse importierte Buchungen müssen korrigiert werden:", os.linesep])
+                self.write_dicts_mit_korrigierbedarf(self.finesse_export_dicts_mit_korrigierbedarf, self.finesse_import_fieldnames, f)
+                f_utf8.writelines([os.linesep])
 
             f.close()
         else:
@@ -489,6 +502,23 @@ class MainController:
             values[u'Fehler'] = b.fehler_beschreibung
             writer.writerow(values)
 
+    def write_dicts_mit_korrigierbedarf(self, dicts, fieldnames, filehandle):
+        fieldnames.insert(0, u'Korrekturanweisung')
+        writer = UnicodeCSV.UnicodeDictWriter(filehandle,
+                                   fieldnames,
+                                   encoding = "utf-8",
+                                   lineterminator=os.linesep,
+                                   restval='',
+                                   delimiter=";",
+                                   quoting=csv.QUOTE_MINIMAL,
+                                   strict=True)
+        writer.writeheader()
+        for d in dicts:
+            writer.writerow(d)
+
+    @property
+    def finesse_import_fieldnames(self):
+        return [u'Datum', u'Buchungstext', u'Betrag', u'USt-Code', u'Betrag USt', u'Konto Haben', u'Konto Soll', u'Kostenrechnungsobjekt 1', u'Rechnungsnummer', u'Belegnummer 1', u'VF_Nr', u'Notiz']
 
 class StopRun(Exception):
     pass

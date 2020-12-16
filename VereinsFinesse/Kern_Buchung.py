@@ -256,9 +256,17 @@ class Kern_Buchung:
         export_datum = self.datum
         if self.steuerfall:
             result[u'USt-Code'] = self.steuerfall.code
-            export_datum, was_adjusted = self.steuerfall.adjust_datum(export_datum)
-            if was_adjusted:
-                result[u'Notiz'] = u'Belegdatum korrigiert für Steuercode {0} mit Satz {1}%, im VF: {2}'.format(self.steuerfall.code, self.steuerfall.ust_satz, self.datum.strftime('%d.%m.%Y'))
+            # Finesse wählt den Steuersatz nach Datum aus, egal was im Import steht.
+            # Wir haben uns entschlossen, diese Fälle manuell in Finesse zu korrigieren, da es
+            # ein einmaliger Vorgang ist.
+            if not self.steuerfall.valid_in_year(export_datum.year):
+                korrekturanweisung = u'Nach Import Steuersatz korrigieren auf {0}%, Netto: {1}, Brutto: {2}'.format(self.steuerfall.ust_satz, result[u'Betrag'] - result[u'Betrag USt'], result[u'Betrag'])
+                result[u'Notiz'] = korrekturanweisung
+                result[u'Korrekturanweisung'] = korrekturanweisung
+            else:
+                export_datum, was_adjusted = self.steuerfall.adjust_datum(export_datum)
+                if was_adjusted:
+                    result[u'Notiz'] = u'Belegdatum korrigiert für Steuercode {0} mit Satz {1}%, im VF: {2}'.format(self.steuerfall.code, self.steuerfall.ust_satz, self.datum.strftime('%d.%m.%Y'))
 
         result[u'Datum'] = export_datum.strftime('%d.%m.%Y')
 

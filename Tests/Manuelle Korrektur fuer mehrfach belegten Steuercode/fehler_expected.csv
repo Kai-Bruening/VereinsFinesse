@@ -1,0 +1,4 @@
+﻿Folgende in Finesse importierte Buchungen müssen korrigiert werden:
+Korrekturanweisung;Datum;Buchungstext;Betrag;USt-Code;Betrag USt;Konto Haben;Konto Soll;Kostenrechnungsobjekt 1;Rechnungsnummer;Belegnummer 1;VF_Nr;Notiz
+Nach Import Steuersatz korrigieren auf 16%, Netto: 6.47, Brutto: 7.50;17.01.2021;Landegebühr;7.50;3;1.03;7076;1020;902;20210050;;37348752;
+
