@@ -253,6 +253,10 @@ class Kern_Buchung:
             assert self.betrag_soll == self.betrag_haben
             result[u'Betrag'] = self.betrag_soll
 
+        # Finesse mag keine Nullbuchungen.
+        if result[u'Betrag'] == Decimal(0):
+            return None
+
         export_datum = self.datum
         if self.steuerfall:
             result[u'USt-Code'] = self.steuerfall.code

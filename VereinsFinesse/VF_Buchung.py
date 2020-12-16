@@ -259,7 +259,11 @@ class VF_Buchung:
                 storno_buchung = self.kern_buchung_zum_stornieren_von_finesse_buchungen(finesse_buchungen)
                 # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
                 if not storno_buchung.is_null:
-                    result.append(self.dict_for_export_to_finesse(storno_buchung))
+                    result_dict = self.dict_for_export_to_finesse(storno_buchung)
+                    # Selbst wenn .is_null false ist, kann der Finesseexport noch null werden
+                    # durch Rundungseffekte (ein Betrag 0, der andere 0,01).
+                    if result_dict != None:
+                        result.append(result_dict)
 
         # Jetzt eine Finesse-Buchung für diese VF-Buchung erzeugen, korrigiert um evt. bereits übertragene kompatible
         # frühere Versionen der Buchung.
@@ -271,7 +275,11 @@ class VF_Buchung:
 
         # Finesse protestiert bei Buchung mit Betrag 0, was irgendwie verständlich ist.
         if not export_buchung.is_null:
-            result.append(self.dict_for_export_to_finesse(export_buchung))
+            result_dict = self.dict_for_export_to_finesse(export_buchung)
+            # Selbst wenn .is_null false ist, kann der Finesseexport noch null werden
+            # durch Rundungseffekte (ein Betrag 0, der andere 0,01).
+            if result_dict != None:
+                result.append(result_dict)
 
         return result
 
@@ -328,7 +336,8 @@ class VF_Buchung:
         :rtype: dict
         """
         result = kern_buchung.dict_for_export_to_finesse(self.konfiguration)
-        result[u'VF_Nr'] = CheckDigit.append_checkdigit(unicode(self.vf_nr))
+        if result != None:  # -> betrag wäre 0
+            result[u'VF_Nr'] = CheckDigit.append_checkdigit(unicode(self.vf_nr))
         return result
 
     @classmethod
