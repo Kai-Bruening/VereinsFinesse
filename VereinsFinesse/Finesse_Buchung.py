@@ -203,12 +203,7 @@ class Finesse_Buchung:
 
         # Ein Kandidat -> fertig
         if len(kandidaten) == 1:
-            fall = kandidaten[0]
-            year = kern_buchung.datum.year
-            if not fall.valid_in_year(year):
-                self.fehler_beschreibung = u'Steuercode {0} mit Steuersatz {1} gibt es im Jahr {2} nicht'.format(steuercode, fall.ust_satz, year)
-                return None
-            return fall
+            return kandidaten[0]
 
         # Uneindeutig: über Datum entscheiden.
         for fall in kandidaten:
